@@ -168,7 +168,7 @@ export interface CoachResult {
 
 /** Deterministic, rule-based Socratic turn for demo/offline mode. */
 export function coachTurn(canvas: Canvas, stepIndex: number, answer: string): CoachResult {
-  const step = STEPS[Math.min(stepIndex, STEPS.length - 1)];
+  const step = STEPS[Math.min(stepIndex, STEPS.length - 1)]!;
   const probe = vaguenessProbe(step.block, answer);
   if (probe) {
     return { reply: probe, additions: [], flags: [], nextStep: stepIndex, stage: step.stage };
@@ -190,12 +190,12 @@ export function coachTurn(canvas: Canvas, stepIndex: number, answer: string): Co
   }
   const before = new Set(coherenceFlags(canvas));
   const flags = coherenceFlags(projected).filter((f) => !before.has(f));
-  const next = STEPS[stepIndex + 1];
+  const next = STEPS[stepIndex + 1]!;
   const ack = step.block
     ? `Noted under ${BLOCKS[step.block].title} as untested hypotheses (yellow).`
     : "That's a real starting point.";
   const reply = flags.length
-    ? `${ack} But before we move on — ${flags[0].replace(/^Coherence: /, "")}`
+    ? `${ack} But before we move on — ${flags[0]!.replace(/^Coherence: /, "")}`
     : `${ack} ${next.question}`;
   return {
     reply,

@@ -26,7 +26,7 @@ const STATUS_STYLE: Record<ItemStatus, string> = {
 };
 const DOT: Record<ItemStatus, string> = { hypothesis: "bg-hypo", validated: "bg-valid", invalidated: "bg-invalid" };
 
-export function CanvasGrid({ canvas, prev, readOnly }: { canvas: Canvas; prev?: Canvas; readOnly: boolean }) {
+export function CanvasGrid({ canvas, prev, readOnly }: { canvas: Canvas; prev?: Canvas | undefined; readOnly: boolean }) {
   return (
     <div className="grid grid-cols-1 gap-2 md:auto-rows-[minmax(150px,auto)] md:grid-cols-10">
       {(Object.keys(LAYOUT) as BlockId[]).map((b) => (
@@ -36,7 +36,7 @@ export function CanvasGrid({ canvas, prev, readOnly }: { canvas: Canvas; prev?: 
   );
 }
 
-function Block({ id, items, prev, readOnly }: { id: BlockId; items: CanvasItem[]; prev?: CanvasItem[]; readOnly: boolean }) {
+function Block({ id, items, prev, readOnly }: { id: BlockId; items: CanvasItem[]; prev?: CanvasItem[] | undefined; readOnly: boolean }) {
   const addItems = useCanvasStore((s) => s.addItems);
   const [adding, setAdding] = useState("");
   const [open, setOpen] = useState(false);

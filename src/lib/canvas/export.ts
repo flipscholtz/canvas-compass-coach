@@ -12,7 +12,7 @@ export const exportJson = (s: Exportable) =>
 const mark = { hypothesis: "🟡", validated: "🟢", invalidated: "🔴" } as const;
 
 export function exportMarkdown(s: Exportable) {
-  const head = s.versions[s.versions.length - 1];
+  const head = s.versions[s.versions.length - 1]!;
   const lines = [`# ${s.scenarioName}`, "", `**Current version:** ${head.label}`, "", `_${head.note}_`, ""];
   for (const b of BLOCK_ORDER) {
     lines.push(`## ${BLOCKS[b].title}`);

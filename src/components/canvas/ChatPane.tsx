@@ -22,7 +22,7 @@ export function ChatPane() {
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const head = s.versions[s.versions.length - 1].canvas;
+  const head = s.versions[s.versions.length - 1]!.canvas;
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -59,7 +59,8 @@ export function ChatPane() {
   function quick(key: (typeof QUICK)[number]["key"]) {
     if (s.apiKey && key !== "skip") {
       const prompt = QUICK.find((q) => q.key === key)!.label;
-      return send(prompt);
+      void send(prompt);
+      return;
     }
     if (key === "coherence") {
       const flags = coherenceFlags(head);
@@ -88,8 +89,8 @@ export function ChatPane() {
       });
     } else {
       const next = Math.min(s.step + 1, STEPS.length - 1);
-      s.setProgress(next, STEPS[next].stage);
-      s.pushMessage({ role: "coach", text: `Parking that. ${STEPS[next].question}` });
+      s.setProgress(next, STEPS[next]!.stage);
+      s.pushMessage({ role: "coach", text: `Parking that. ${STEPS[next]!.question}` });
     }
   }
 
