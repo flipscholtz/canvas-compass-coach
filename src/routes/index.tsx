@@ -14,6 +14,7 @@ import { ChatPane } from "@/components/canvas/ChatPane";
 import { CanvasGrid } from "@/components/canvas/CanvasGrid";
 import { StackBar } from "@/components/canvas/StackBar";
 import { TestCards } from "@/components/canvas/TestCards";
+import { SuggestAllButton } from "@/components/canvas/SuggestAllButton";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -109,10 +110,13 @@ function App() {
               </div>
             )}
             <CanvasGrid canvas={viewing.canvas} prev={prev} readOnly={readOnly} />
-            <div className="flex flex-wrap gap-4 px-1 text-[11px] text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+            <div className="flex flex-wrap gap-4 text-[11px] text-muted-foreground">
               <span><span className="mr-1 inline-block size-2 rounded-full bg-hypo" />Untested hypothesis</span>
               <span><span className="mr-1 inline-block size-2 rounded-full bg-valid" />Validated with evidence</span>
               <span><span className="mr-1 inline-block size-2 rounded-full bg-invalid" />Invalidated</span>
+            </div>
+            {!readOnly && <SuggestAllButton />}
             </div>
             <TestCards open={cardsOpen} onToggle={() => setCardsOpen((o) => !o)} />
           </div>

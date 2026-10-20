@@ -23,7 +23,7 @@ interface State {
   apiKey: string;
   model: string;
   scenarioName: string;
-  addItems: (adds: { block: BlockId; text: string }[]) => void;
+  addItems: (adds: { block: BlockId; text: string }[], source?: "suggested") => void;
   updateItem: (block: BlockId, id: string, patch: Partial<CanvasItem>) => void;
   deleteItem: (block: BlockId, id: string) => void;
   pushMessage: (m: Omit<ChatMessage, "id">) => void;
@@ -61,13 +61,13 @@ export const useCanvasStore = create<State>()(
       ...freshSession(),
       apiKey: "",
       model: "gpt-4o-mini",
-      addItems: (adds) =>
+      addItems: (adds, source) =>
         set((s) => ({
           versions: updateHead(s.versions, (v) => {
             const canvas = { ...v.canvas };
             for (const a of adds) {
               if (canvas[a.block].some((i) => i.text.toLowerCase() === a.text.toLowerCase())) continue;
-              canvas[a.block] = [...canvas[a.block], { id: uid(), text: a.text, status: "hypothesis" }];
+              canvas[a.block] = [...canvas[a.block], { id: uid(), text: a.text, status: "hypothesis", ...(source ? { source } : {}) }];
             }
             return { ...v, canvas };
           }),

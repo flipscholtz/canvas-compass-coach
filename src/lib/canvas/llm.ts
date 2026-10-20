@@ -57,3 +57,31 @@ export async function llmTurn(opts: {
     flags: Array.isArray(parsed.flags) ? parsed.flags.map(String) : [],
   };
 }
+
+export async function llmSuggest(opts: { apiKey: string; model: string; canvas: Canvas; blocks: BlockId[] }) {
+  const canvasSummary = Object.fromEntries(BLOCK_ORDER.map((b) => [b, opts.canvas[b].map((i) => i.text)]));
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${opts.apiKey}` },
+    body: JSON.stringify({
+      model: opts.model,
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content: `You generate testable business-model assumptions (David J. Bland style): short, specific, falsifiable statements, not already on the canvas. Respond ONLY with JSON: {"assumptions": [{"block": one of ${BLOCK_ORDER.join("|")}, "text": string}]}. Give 3 per requested block.`,
+        },
+        { role: "user", content: `Canvas: ${JSON.stringify(canvasSummary)}\nBlocks: ${opts.blocks.join(", ")}` },
+      ],
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.error?.message ?? `OpenAI request failed (${res.status})`);
+  }
+  const data = await res.json();
+  const parsed = JSON.parse(data.choices?.[0]?.message?.content ?? "{}");
+  return (Array.isArray(parsed.assumptions) ? parsed.assumptions : []).filter(
+    (a: { block: string; text: string }) => opts.blocks.includes(a.block as BlockId) && a.text,
+  ) as { block: BlockId; text: string }[];
+}

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Lightbulb, Loader2, Plus, Trash2 } from "lucide-react";
+import { useSuggest } from "./useSuggest";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ export function CanvasGrid({ canvas, prev, readOnly }: { canvas: Canvas; prev?: 
 
 function Block({ id, items, prev, readOnly }: { id: BlockId; items: CanvasItem[]; prev?: CanvasItem[] | undefined; readOnly: boolean }) {
   const addItems = useCanvasStore((s) => s.addItems);
+  const { suggest, busy } = useSuggest();
   const [adding, setAdding] = useState("");
   const [open, setOpen] = useState(false);
   const isVP = id === "valueProps";
@@ -61,13 +63,24 @@ function Block({ id, items, prev, readOnly }: { id: BlockId; items: CanvasItem[]
           <p className="text-[11px] text-muted-foreground">{BLOCKS[id].hint}</p>
         </div>
         {!readOnly && (
-          <button
-            aria-label={`Add to ${BLOCKS[id].title}`}
-            onClick={() => setOpen((o) => !o)}
-            className="rounded p-1 text-muted-foreground opacity-60 hover:bg-muted hover:opacity-100"
-          >
-            <Plus className="size-3.5" />
-          </button>
+          <div className="flex shrink-0">
+            <button
+              aria-label={`Suggest assumptions for ${BLOCKS[id].title}`}
+              title="Suggest assumptions to test"
+              disabled={!!busy}
+              onClick={() => suggest(id)}
+              className="rounded p-1 text-muted-foreground opacity-60 hover:bg-muted hover:text-signal hover:opacity-100 disabled:opacity-30"
+            >
+              {busy === id ? <Loader2 className="size-3.5 animate-spin" /> : <Lightbulb className="size-3.5" />}
+            </button>
+            <button
+              aria-label={`Add to ${BLOCKS[id].title}`}
+              onClick={() => setOpen((o) => !o)}
+              className="rounded p-1 text-muted-foreground opacity-60 hover:bg-muted hover:opacity-100"
+            >
+              <Plus className="size-3.5" />
+            </button>
+          </div>
         )}
       </div>
       <ul className="flex flex-1 flex-col gap-1.5">
@@ -121,6 +134,9 @@ function Note({ block, item, readOnly, isNew }: { block: BlockId; item: CanvasIt
       <span className={cn("mt-1 size-1.5 shrink-0 rounded-full", DOT[item.status])} />
       <span className="flex-1">{item.text}</span>
       {isNew && <span className="font-mono text-[9px] uppercase text-valid">new</span>}
+      {item.source === "suggested" && (
+        <span title="Suggested by the co-pilot" className="font-mono text-[9px] uppercase text-muted-foreground">sugg.</span>
+      )}
     </span>
   );
   if (readOnly) return body;
