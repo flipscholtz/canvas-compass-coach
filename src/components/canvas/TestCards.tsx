@@ -1,24 +1,17 @@
 import { FlaskConical, Trash2, ChevronDown } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCanvasStore } from "@/lib/canvas/store";
-import { generateTestCard, riskiestAssumption } from "@/lib/canvas/coach";
+import { useRiskiest } from "./useRiskiest";
+import { LENS_STYLE } from "./AssumptionChip";
 import { BLOCKS } from "@/lib/canvas/types";
 
 
-export function TestCards({ open, onToggle }: { open: boolean; onToggle: () => void }) {
+export function TestCards() {
   const s = useCanvasStore();
-  const head = s.versions[s.versions.length - 1]!.canvas;
-
-  function generate() {
-    const r = riskiestAssumption(head, s.cards);
-    if (!r) { toast("No untested assumptions left to test."); return; }
-    const seg = head.segments.find((i) => i.status !== "invalidated")?.text;
-    s.addCard(generateTestCard(r.block, r.item.text, seg));
-    if (!open) onToggle();
-    toast.success(`Test card drafted for ${BLOCKS[r.block].title}`);
-  }
+  const open = s.drawerOpen;
+  const onToggle = () => s.setDrawerOpen(!open);
+  const identifyRiskiest = useRiskiest();
 
   return (
     <div className="rounded-lg border bg-card shadow-card">
@@ -29,8 +22,8 @@ export function TestCards({ open, onToggle }: { open: boolean; onToggle: () => v
           <span className="rounded-full bg-muted px-2 font-mono text-[10px]">{s.cards.length}</span>
           <ChevronDown className={cn("size-4 transition-transform", open && "rotate-180")} />
         </button>
-        <Button size="sm" variant="outline" onClick={generate}>
-          Generate Test Card from Riskiest Assumption
+        <Button size="sm" variant="outline" onClick={identifyRiskiest}>
+          Extract & Test Riskiest Assumption
         </Button>
       </div>
       {open && (
@@ -41,10 +34,13 @@ export function TestCards({ open, onToggle }: { open: boolean; onToggle: () => v
             </p>
           )}
           {s.cards.map((c) => (
-            <article key={c.id} className="rounded-md border bg-background p-3 text-sm">
+            <article key={c.id} className={cn("rounded-md border bg-background p-3 text-sm", s.highlightCardId === c.id && "border-signal ring-2 ring-signal/30")}>
               <header className="mb-2 flex items-start justify-between gap-2">
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-wider text-signal">{BLOCKS[c.block].title}</p>
+                  <p className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-signal">
+                    {BLOCKS[c.block].title}
+                    {c.lens && <span className={cn("rounded px-1 py-px", LENS_STYLE[c.lens])}>{c.lens}</span>}
+                  </p>
                   <h4 className="font-medium leading-snug">{c.title}</h4>
                 </div>
                 <button aria-label="Delete test card" onClick={() => s.removeCard(c.id)} className="text-muted-foreground hover:text-destructive">

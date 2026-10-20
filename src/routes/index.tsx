@@ -42,7 +42,6 @@ function Index() {
 function App() {
   const s = useCanvasStore();
   const [tab, setTab] = useState<"chat" | "canvas">("chat");
-  const [cardsOpen, setCardsOpen] = useState(true);
   const [settings, setSettings] = useState(false);
   const [key, setKey] = useState(s.apiKey);
   const [model, setModel] = useState(s.model);
@@ -118,7 +117,7 @@ function App() {
             </div>
             {!readOnly && <SuggestAllButton />}
             </div>
-            <TestCards open={cardsOpen} onToggle={() => setCardsOpen((o) => !o)} />
+            <TestCards />
           </div>
         </div>
       </main>

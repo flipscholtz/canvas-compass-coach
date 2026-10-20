@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCanvasStore } from "@/lib/canvas/store";
 import { STAGES } from "@/lib/canvas/types";
-import { coachTurn, coherenceFlags, riskiestAssumption, STEPS } from "@/lib/canvas/coach";
+import { coachTurn, coherenceFlags, STEPS } from "@/lib/canvas/coach";
+import { useRiskiest } from "./useRiskiest";
+import { AssumptionChip } from "./AssumptionChip";
 import { llmTurn } from "@/lib/canvas/llm";
 
 const QUICK = [
+  { label: "Identify My Riskiest Assumption", key: "risk" },
   { label: "Check coherence", key: "coherence" },
-  { label: "What's my riskiest assumption?", key: "risk" },
   { label: "Challenge my value proposition", key: "vp" },
   { label: "Skip this question", key: "skip" },
 ] as const;
@@ -22,6 +24,7 @@ export function ChatPane() {
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const identifyRiskiest = useRiskiest();
   const head = s.versions[s.versions.length - 1]!.canvas;
 
   useEffect(() => {
@@ -38,15 +41,15 @@ export function ChatPane() {
       if (s.apiKey) {
         const history = [...useCanvasStore.getState().messages];
         const r = await llmTurn({ apiKey: s.apiKey, model: s.model, canvas: head, history });
-        s.addItems(r.additions);
+        s.addItems(r.additions.map((a, i) => (i === 0 && r.assumptions.length ? { ...a, assumptions: r.assumptions } : a)));
         s.setProgress(s.step, r.stage);
-        s.pushMessage({ role: "coach", text: r.reply, flags: r.flags });
+        s.pushMessage({ role: "coach", text: r.reply, flags: r.flags, assumptions: r.assumptions });
       } else {
         await new Promise((res) => setTimeout(res, 550));
         const r = coachTurn(head, s.step, t);
         s.addItems(r.additions);
         s.setProgress(r.nextStep, r.stage);
-        s.pushMessage({ role: "coach", text: r.reply, flags: r.flags });
+        s.pushMessage({ role: "coach", text: r.reply, flags: r.flags, assumptions: r.assumptions });
       }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Coach request failed");
@@ -57,6 +60,10 @@ export function ChatPane() {
   }
 
   function quick(key: (typeof QUICK)[number]["key"]) {
+    if (key === "risk") {
+      identifyRiskiest();
+      return;
+    }
     if (s.apiKey && key !== "skip") {
       const prompt = QUICK.find((q) => q.key === key)!.label;
       void send(prompt);
@@ -70,14 +77,6 @@ export function ChatPane() {
           ? `I found ${flags.length} tension${flags.length > 1 ? "s" : ""} across your blocks. Which one are you least comfortable defending?`
           : "No obvious contradictions between blocks yet. That usually means a block is still too thin — which one have you said least about?",
         flags,
-      });
-    } else if (key === "risk") {
-      const r = riskiestAssumption(head, s.cards);
-      s.pushMessage({
-        role: "coach",
-        text: r
-          ? `Your riskiest untested assumption looks like “${r.item.text}”. What is the cheapest evidence you could gather this week to prove it wrong?`
-          : "Everything is either validated or already has a test card. What new assumption did your last experiment surface?",
       });
     } else if (key === "vp") {
       const vp = head.valueProps[0];
@@ -140,6 +139,16 @@ export function ChatPane() {
               </div>
               <div className="max-w-[90%] space-y-2">
                 <p className="text-sm leading-relaxed">{m.text}</p>
+                {!!m.assumptions?.length && (
+                  <div className="space-y-1.5 rounded-md border bg-background p-2.5">
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Underlying assumptions you're making
+                    </p>
+                    {m.assumptions.map((a) => (
+                      <AssumptionChip key={a.text} assumption={a} />
+                    ))}
+                  </div>
+                )}
                 {m.flags?.map((f) => (
                   <div
                     key={f}
@@ -168,7 +177,12 @@ export function ChatPane() {
               key={q.key}
               onClick={() => quick(q.key)}
               disabled={busy}
-              className="rounded-full border bg-background px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:border-signal hover:text-foreground disabled:opacity-50"
+              className={cn(
+                "rounded-full border px-2.5 py-1 text-xs transition-colors disabled:opacity-50",
+                q.key === "risk"
+                  ? "border-signal bg-signal text-signal-foreground hover:bg-signal/90"
+                  : "bg-background text-muted-foreground hover:border-signal hover:text-foreground",
+              )}
             >
               {q.label}
             </button>
