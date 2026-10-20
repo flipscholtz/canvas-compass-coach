@@ -195,7 +195,7 @@ export function coachTurn(canvas: Canvas, stepIndex: number, answer: string): Co
     ? `Noted under ${BLOCKS[step.block].title} as untested hypotheses (yellow).`
     : "That's a real starting point.";
   const reply = flags.length
-    ? `${ack} But before we move on — ${flags[0].replace(/^Coherence: /, "")}`
+    ? `${ack} But before we move on — ${flags[0]!.replace(/^Coherence: /, "")}`
     : `${ack} ${next.question}`;
   return {
     reply,
