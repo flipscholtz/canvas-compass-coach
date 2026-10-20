@@ -9,11 +9,11 @@ import { BLOCKS } from "@/lib/canvas/types";
 
 export function TestCards({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const s = useCanvasStore();
-  const head = s.versions[s.versions.length - 1].canvas;
+  const head = s.versions[s.versions.length - 1]!.canvas;
 
   function generate() {
     const r = riskiestAssumption(head, s.cards);
-    if (!r) return toast("No untested assumptions left to test.");
+    if (!r) { toast("No untested assumptions left to test."); return; }
     const seg = head.segments.find((i) => i.status !== "invalidated")?.text;
     s.addCard(generateTestCard(r.block, r.item.text, seg));
     if (!open) onToggle();

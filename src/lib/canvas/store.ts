@@ -44,7 +44,7 @@ const freshSession = () => ({
   viewingId: null,
   messages: [
     { id: uid(), role: "coach" as const, text: "I'm your sparring partner, not your form-filler. I'll ask one question at a time and push back when things don't add up." },
-    { id: uid(), role: "coach" as const, text: STEPS[0].question },
+    { id: uid(), role: "coach" as const, text: STEPS[0]!.question },
   ],
   step: 0,
   stage: 1 as Stage,
@@ -90,7 +90,7 @@ export const useCanvasStore = create<State>()(
       setProgress: (step, stage) => set({ step, stage }),
       commitVersion: (label, note) =>
         set((s) => {
-          const head = s.versions[s.versions.length - 1];
+          const head = s.versions[s.versions.length - 1]!;
           const copy: CanvasVersion = {
             id: uid(),
             label,

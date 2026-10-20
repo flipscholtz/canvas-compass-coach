@@ -23,7 +23,7 @@ export function StackBar() {
   const [timeline, setTimeline] = useState(false);
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
-  const headId = s.versions[s.versions.length - 1].id;
+  const headId = s.versions[s.versions.length - 1]!.id;
   const activeId = s.viewingId ?? headId;
 
   const download = (name: string, content: string, type: string) => {
@@ -118,7 +118,7 @@ export function StackBar() {
             <Button
               disabled={!note.trim()}
               onClick={() => {
-                const last = s.versions[s.versions.length - 1];
+                const last = s.versions[s.versions.length - 1]!;
                 const ver = nextLabel(s.versions.length, mode === "pivot", last.label);
                 s.commitVersion(`${ver} · ${title.trim() || (mode === "pivot" ? "Pivot" : "Iteration")}`, note.trim());
                 setTitle("");

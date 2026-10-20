@@ -22,7 +22,7 @@ export function ChatPane() {
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const head = s.versions[s.versions.length - 1].canvas;
+  const head = s.versions[s.versions.length - 1]!.canvas;
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -88,8 +88,8 @@ export function ChatPane() {
       });
     } else {
       const next = Math.min(s.step + 1, STEPS.length - 1);
-      s.setProgress(next, STEPS[next].stage);
-      s.pushMessage({ role: "coach", text: `Parking that. ${STEPS[next].question}` });
+      s.setProgress(next, STEPS[next]!.stage);
+      s.pushMessage({ role: "coach", text: `Parking that. ${STEPS[next]!.question}` });
     }
   }
 
