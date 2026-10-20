@@ -1,0 +1,93 @@
+export type BlockId =
+  | "keyPartners"
+  | "keyActivities"
+  | "keyResources"
+  | "valueProps"
+  | "relationships"
+  | "channels"
+  | "segments"
+  | "costs"
+  | "revenue";
+
+export type ItemStatus = "hypothesis" | "validated" | "invalidated";
+
+export interface CanvasItem {
+  id: string;
+  text: string;
+  status: ItemStatus;
+}
+
+export type Canvas = Record<BlockId, CanvasItem[]>;
+
+export interface CanvasVersion {
+  id: string;
+  label: string;
+  note: string;
+  createdAt: string;
+  canvas: Canvas;
+}
+
+export interface TestCard {
+  id: string;
+  title: string;
+  block: BlockId;
+  hypothesis: string;
+  experiment: string;
+  metric: string;
+  criteria: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: "coach" | "user";
+  text: string;
+  flags?: string[];
+}
+
+export type Stage = 1 | 2 | 3 | 4 | 5;
+
+export const STAGES: { id: Stage; label: string; short: string }[] = [
+  { id: 1, label: "Intake", short: "Intake" },
+  { id: 2, label: "Desirability · Front Stage", short: "Desirability" },
+  { id: 3, label: "Feasibility · Back Stage", short: "Feasibility" },
+  { id: 4, label: "Viability · Financial Engine", short: "Viability" },
+  { id: 5, label: "Test Cards & Experiments", short: "Experiments" },
+];
+
+export const BLOCKS: Record<BlockId, { title: string; hint: string }> = {
+  keyPartners: { title: "Key Partners", hint: "Who helps you deliver?" },
+  keyActivities: { title: "Key Activities", hint: "What must you do brilliantly?" },
+  keyResources: { title: "Key Resources", hint: "What assets are indispensable?" },
+  valueProps: { title: "Value Propositions", hint: "What job do you get done?" },
+  relationships: { title: "Customer Relationships", hint: "How do you win & keep them?" },
+  channels: { title: "Channels", hint: "How do you reach them?" },
+  segments: { title: "Customer Segments", hint: "For whom, exactly?" },
+  costs: { title: "Cost Structure", hint: "What are the biggest costs?" },
+  revenue: { title: "Revenue Streams", hint: "What will they pay for?" },
+};
+
+export const BLOCK_ORDER: BlockId[] = [
+  "keyPartners",
+  "keyActivities",
+  "keyResources",
+  "valueProps",
+  "relationships",
+  "channels",
+  "segments",
+  "costs",
+  "revenue",
+];
+
+export const emptyCanvas = (): Canvas => ({
+  keyPartners: [],
+  keyActivities: [],
+  keyResources: [],
+  valueProps: [],
+  relationships: [],
+  channels: [],
+  segments: [],
+  costs: [],
+  revenue: [],
+});
+
+export const uid = () => Math.random().toString(36).slice(2, 10);
