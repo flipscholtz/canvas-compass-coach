@@ -26,3 +26,20 @@ describe("Socratic coach rules", () => {
     expect(coherenceFlags(c).some((f) => /Key Resources/.test(f))).toBe(true);
   });
 });
+
+import { suggestAssumptions } from "./coach";
+describe("synthetic assumptions", () => {
+  it("generates 3 assumptions per block using the stated segment", () => {
+    const c = emptyCanvas();
+    c.segments = [{ id: "1", text: "Dental clinic managers", status: "hypothesis" }];
+    const out = suggestAssumptions(c, "revenue");
+    expect(out).toHaveLength(3);
+    expect(out[0]).toContain("Dental clinic managers");
+  });
+  it("does not repeat assumptions already on the canvas", () => {
+    const c = emptyCanvas();
+    const first = suggestAssumptions(c, "costs", 1)[0]!;
+    c.costs = [{ id: "x", text: first, status: "hypothesis" }];
+    expect(suggestAssumptions(c, "costs")).not.toContain(first);
+  });
+});

@@ -244,3 +244,66 @@ export function generateTestCard(block: BlockId, text: string, segment?: string)
     criteria: `We are right if ${e.criteria}.`,
   };
 }
+
+const ASSUMPTION_TEMPLATES: Record<BlockId, string[]> = {
+  segments: [
+    "{seg} experience this problem at least monthly",
+    "{seg} already spend money or time on a workaround",
+    "A single budget owner within {seg} can sign off without a committee",
+    "{seg} are reachable in large enough numbers to build a business",
+  ],
+  valueProps: [
+    "{seg} rank this pain in their top 3 priorities",
+    "{seg} prefer our solution over their current workaround",
+    "The main gain ({vp}) is noticeable within the first week of use",
+    "{seg} trust a new provider to deliver {vp}",
+  ],
+  channels: [
+    "{seg} search for solutions online before asking peers",
+    "A partner or referral channel can deliver qualified leads at low cost",
+    "{seg} will book a demo or trial from a cold outreach message",
+  ],
+  relationships: [
+    "{seg} are happy to onboard themselves without human help",
+    "{seg} will stay active after 30 days without ongoing check-ins",
+    "Existing customers will refer peers once they see results",
+  ],
+  keyActivities: [
+    "We can deliver {vp} manually before automating it",
+    "Onboarding a new customer takes under one day of our effort",
+    "Quality can be kept high as volume grows 10×",
+  ],
+  keyResources: [
+    "We can hire or contract the skills needed to build {vp} within 3 months",
+    "The data we need is accessible, legal to use and good enough",
+    "Our current funding covers 12 months of learning experiments",
+  ],
+  keyPartners: [
+    "At least one established partner will pilot with an unproven startup",
+    "Key suppliers will offer terms that keep our margins healthy",
+    "Partners won't copy our offer once they see it works",
+  ],
+  revenue: [
+    "{seg} will pay up front rather than only after results",
+    "{seg} consider our proposed price fair relative to their workaround",
+    "Customers will expand spend within the first year",
+  ],
+  costs: [
+    "Acquiring a customer costs less than one-third of their first-year revenue",
+    "Serving each extra customer costs little once the product is built",
+    "Our biggest cost driver can be cut in half at scale",
+  ],
+};
+
+/** Deterministic, context-aware assumptions for a block (skips ones already on the canvas). */
+export function suggestAssumptions(canvas: Canvas, block: BlockId, count = 3): string[] {
+  const live = (b: BlockId) => canvas[b].find((i) => i.status !== "invalidated")?.text;
+  const seg = live("segments") ?? "our target customers";
+  const vp = live("valueProps")?.replace(/[.]+$/, "") ?? "our core benefit";
+  const existing = new Set(canvas[block].map((i) => i.text.toLowerCase()));
+  return ASSUMPTION_TEMPLATES[block]
+    .map((t) => t.replace(/\{seg\}/g, seg).replace(/\{vp\}/g, vp))
+    .map((t) => t.charAt(0).toUpperCase() + t.slice(1))
+    .filter((t) => !existing.has(t.toLowerCase()))
+    .slice(0, count);
+}
