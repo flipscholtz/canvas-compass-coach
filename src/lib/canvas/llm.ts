@@ -1,4 +1,4 @@
-import { BLOCK_ORDER, type BlockId, type Canvas, type ChatMessage, type Stage } from "./types";
+import { type Assumption, BLOCK_ORDER, type BlockId, type Canvas, type ChatMessage, type Stage } from "./types";
 
 const SYSTEM = `You are CanvasStack, a Socratic venture coach using Osterwalder's Business Model Canvas and David J. Bland's Testing Business Ideas.
 Rules:
@@ -6,14 +6,16 @@ Rules:
 2. Reject vague customer segments (e.g. "small businesses"): probe vertical, company size, and who owns the budget.
 3. Enforce cross-block coherence: if a Value Proposition implies capabilities missing from Key Resources/Activities/Costs, flag it.
 4. Only add canvas items the founder actually stated, phrased as concise hypotheses.
+5. Surface 1-2 underlying assumptions embedded in the founder's latest statement, each classified as desirability, feasibility or viability. Phrase each as a clause completing "We believe that ..." (lower-case start, no trailing period). Never answer for the founder; reveal what they take for granted.
 Stages: 1 Intake, 2 Desirability (segments, value props, channels, relationships), 3 Feasibility (activities, resources, partners), 4 Viability (revenue, costs), 5 Test Cards.
-Respond ONLY with JSON: {"reply": string, "stage": 1-5, "additions": [{"block": one of ${BLOCK_ORDER.join("|")}, "text": string}], "flags": [string]}`;
+Respond ONLY with JSON: {"reply": string, "stage": 1-5, "additions": [{"block": one of ${BLOCK_ORDER.join("|")}, "text": string}], "assumptions": [{"lens": "desirability"|"feasibility"|"viability", "text": string}], "flags": [string]}`;
 
 export interface LlmResult {
   reply: string;
   stage: Stage;
   additions: { block: BlockId; text: string }[];
   flags: string[];
+  assumptions: Assumption[];
 }
 
 export async function llmTurn(opts: {
@@ -55,6 +57,9 @@ export async function llmTurn(opts: {
       (a: { block: string; text: string }) => BLOCK_ORDER.includes(a.block as BlockId) && a.text,
     ),
     flags: Array.isArray(parsed.flags) ? parsed.flags.map(String) : [],
+    assumptions: (Array.isArray(parsed.assumptions) ? parsed.assumptions : [])
+      .filter((a: Assumption) => ["desirability", "feasibility", "viability"].includes(a.lens) && a.text)
+      .slice(0, 2),
   };
 }
 

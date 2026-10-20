@@ -25,6 +25,9 @@ interface State {
   apiKey: string;
   model: string;
   scenarioName: string;
+  drawerOpen: boolean;
+  highlightCardId: string | null;
+  setDrawerOpen: (o: boolean) => void;
   addItems: (adds: { block: BlockId; text: string; assumptions?: Assumption[] }[], source?: "suggested") => void;
   updateItem: (block: BlockId, id: string, patch: Partial<CanvasItem>) => void;
   deleteItem: (block: BlockId, id: string) => void;
@@ -63,6 +66,9 @@ export const useCanvasStore = create<State>()(
       ...freshSession(),
       apiKey: "",
       model: "gpt-4o-mini",
+      drawerOpen: true,
+      highlightCardId: null,
+      setDrawerOpen: (o) => set({ drawerOpen: o }),
       addItems: (adds, source) =>
         set((s) => ({
           versions: updateHead(s.versions, (v) => {
@@ -103,7 +109,7 @@ export const useCanvasStore = create<State>()(
           return { versions: [...s.versions, copy], viewingId: null };
         }),
       setViewing: (id) => set({ viewingId: id }),
-      addCard: (c) => set((s) => ({ cards: [c, ...s.cards] })),
+      addCard: (c) => set((s) => ({ cards: [c, ...s.cards], drawerOpen: true, highlightCardId: c.id })),
       removeCard: (id) => set((s) => ({ cards: s.cards.filter((c) => c.id !== id) })),
       setSettings: (apiKey, model) => set({ apiKey, model }),
       loadDemo: () =>
@@ -118,6 +124,10 @@ export const useCanvasStore = create<State>()(
         }),
       reset: () => set(freshSession()),
     }),
-    { name: "canvasstack-session", skipHydration: true },
+    {
+      name: "canvasstack-session",
+      skipHydration: true,
+      partialize: ({ drawerOpen: _d, highlightCardId: _h, ...rest }) => rest,
+    },
   ),
 );
