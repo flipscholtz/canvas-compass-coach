@@ -38,6 +38,7 @@ export function CanvasGrid({ canvas, prev, readOnly }: { canvas: Canvas; prev?: 
 
 function Block({ id, items, prev, readOnly }: { id: BlockId; items: CanvasItem[]; prev?: CanvasItem[] | undefined; readOnly: boolean }) {
   const addItems = useCanvasStore((s) => s.addItems);
+  const { suggest, busy } = useSuggest();
   const [adding, setAdding] = useState("");
   const [open, setOpen] = useState(false);
   const isVP = id === "valueProps";
@@ -61,13 +62,24 @@ function Block({ id, items, prev, readOnly }: { id: BlockId; items: CanvasItem[]
           <p className="text-[11px] text-muted-foreground">{BLOCKS[id].hint}</p>
         </div>
         {!readOnly && (
-          <button
-            aria-label={`Add to ${BLOCKS[id].title}`}
-            onClick={() => setOpen((o) => !o)}
-            className="rounded p-1 text-muted-foreground opacity-60 hover:bg-muted hover:opacity-100"
-          >
-            <Plus className="size-3.5" />
-          </button>
+          <div className="flex shrink-0">
+            <button
+              aria-label={`Suggest assumptions for ${BLOCKS[id].title}`}
+              title="Suggest assumptions to test"
+              disabled={!!busy}
+              onClick={() => suggest(id)}
+              className="rounded p-1 text-muted-foreground opacity-60 hover:bg-muted hover:text-signal hover:opacity-100 disabled:opacity-30"
+            >
+              {busy === id ? <Loader2 className="size-3.5 animate-spin" /> : <Lightbulb className="size-3.5" />}
+            </button>
+            <button
+              aria-label={`Add to ${BLOCKS[id].title}`}
+              onClick={() => setOpen((o) => !o)}
+              className="rounded p-1 text-muted-foreground opacity-60 hover:bg-muted hover:opacity-100"
+            >
+              <Plus className="size-3.5" />
+            </button>
+          </div>
         )}
       </div>
       <ul className="flex flex-1 flex-col gap-1.5">
