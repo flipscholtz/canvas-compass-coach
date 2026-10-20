@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Lightbulb, Loader2, Plus, Trash2 } from "lucide-react";
+import { useSuggest } from "./useSuggest";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
