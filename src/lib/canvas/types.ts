@@ -105,3 +105,20 @@ export const emptyCanvas = (): Canvas => ({
 });
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
+
+export type LogCategory = "added" | "edited" | "removed" | "status" | "version" | "test" | "decision" | "session";
+
+export interface LogEntry {
+  id: string;
+  at: string;
+  kind: "change" | "decision";
+  category: LogCategory;
+  author: string;
+  version: string;
+  summary: string;
+  /** Decisions: why it was made / what evidence or signal drove it */
+  rationale?: string;
+  /** Decisions: options that were considered and rejected */
+  alternatives?: string;
+  block?: BlockId;
+}
