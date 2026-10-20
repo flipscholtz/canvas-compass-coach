@@ -8,3 +8,7 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+## Architecture
+- All app state lives in a client-side zustand store (src/lib/canvas/store.ts) persisted to localStorage: guest mode with no backend or sign-in is a hard requirement.
+- The offline coach (src/lib/canvas/coach.ts) is pure, deterministic functions so its rules stay unit-testable.
