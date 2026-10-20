@@ -1,4 +1,5 @@
-import { BLOCKS, type BlockId, type Canvas, type Stage, type TestCard, uid } from "./types";
+import { extractAssumptions } from "./assumptions";
+import { type Assumption, BLOCKS, type BlockId, type Canvas, type Stage, type TestCard, uid } from "./types";
 
 /** Scripted Socratic path through the canvas (one question per step). */
 export interface Step {
@@ -160,8 +161,9 @@ export function coherenceFlags(canvas: Canvas): string[] {
 
 export interface CoachResult {
   reply: string;
-  additions: { block: BlockId; text: string }[];
+  additions: { block: BlockId; text: string; assumptions?: Assumption[] }[];
   flags: string[];
+  assumptions: Assumption[];
   nextStep: number;
   stage: Stage;
 }
@@ -171,7 +173,7 @@ export function coachTurn(canvas: Canvas, stepIndex: number, answer: string): Co
   const step = STEPS[Math.min(stepIndex, STEPS.length - 1)]!;
   const probe = vaguenessProbe(step.block, answer);
   if (probe) {
-    return { reply: probe, additions: [], flags: [], nextStep: stepIndex, stage: step.stage };
+    return { reply: probe, additions: [], flags: [], assumptions: [], nextStep: stepIndex, stage: step.stage };
   }
   if (stepIndex >= STEPS.length - 1) {
     return {
@@ -179,11 +181,12 @@ export function coachTurn(canvas: Canvas, stepIndex: number, answer: string): Co
         "Good — that's the assumption to attack first. I've drafted it as a test. Before you run it: what result would make you willing to pivot?",
       additions: [],
       flags: [],
+      assumptions: [],
       nextStep: stepIndex,
       stage: 5,
     };
   }
-  const additions = step.block ? extractItems(answer).map((text) => ({ block: step.block!, text })) : [];
+  const additions = step.block ? extractItems(answer).map((text) => ({ block: step.block!, text, assumptions: extractAssumptions(step.block!, text) })) : [];
   const projected: Canvas = { ...canvas };
   for (const a of additions) {
     projected[a.block] = [...projected[a.block], { id: "tmp", text: a.text, status: "hypothesis" }];
@@ -191,8 +194,14 @@ export function coachTurn(canvas: Canvas, stepIndex: number, answer: string): Co
   const before = new Set(coherenceFlags(canvas));
   const flags = coherenceFlags(projected).filter((f) => !before.has(f));
   const next = STEPS[stepIndex + 1]!;
+  // Surface 1–2 assumptions from the whole statement (deduped), without answering for the founder.
+  const seen = new Set<string>();
+  const assumptions = additions
+    .flatMap((a) => a.assumptions ?? [])
+    .filter((a) => (seen.has(a.text) ? false : (seen.add(a.text), true)))
+    .slice(0, 2);
   const ack = step.block
-    ? `Noted under ${BLOCKS[step.block].title} as untested hypotheses (yellow).`
+    ? `Noted under ${BLOCKS[step.block].title} as untested hypotheses (yellow). Notice what you're taking for granted below.`
     : "That's a real starting point.";
   const reply = flags.length
     ? `${ack} But before we move on — ${flags[0]!.replace(/^Coherence: /, "")}`
@@ -201,6 +210,7 @@ export function coachTurn(canvas: Canvas, stepIndex: number, answer: string): Co
     reply,
     additions,
     flags,
+    assumptions,
     nextStep: flags.length ? stepIndex + 1 : stepIndex + 1,
     stage: next.stage,
   };
