@@ -47,9 +47,9 @@ function App() {
   const [model, setModel] = useState(s.model);
 
   const viewIdx = s.viewingId ? s.versions.findIndex((v) => v.id === s.viewingId) : s.versions.length - 1;
-  const viewing = s.versions[Math.max(0, viewIdx)];
+  const viewing = s.versions[Math.max(0, viewIdx)]!;
   const readOnly = !!s.viewingId;
-  const prev = readOnly && viewIdx > 0 ? s.versions[viewIdx - 1].canvas : undefined;
+  const prev = readOnly && viewIdx > 0 ? s.versions[viewIdx - 1]!.canvas : undefined;
 
   return (
     <div className="flex h-dvh flex-col">
