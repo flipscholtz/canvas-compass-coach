@@ -6,10 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { DEV_LOG } from "@/lib/canvas/devlog";
 import { useCanvasStore } from "@/lib/canvas/store";
 import { BLOCKS, BLOCK_ORDER, type BlockId, type LogEntry } from "@/lib/canvas/types";
 
-type Filter = "all" | "change" | "decision";
+type Filter = "all" | "change" | "decision" | "app";
 
 const CATEGORY_LABEL: Record<LogEntry["category"], string> = {
   added: "Added",
@@ -49,7 +50,7 @@ export function LogPanel() {
   const [alternatives, setAlternatives] = useState("");
   const [block, setBlock] = useState<BlockId | "none">("none");
 
-  const entries = useMemo(() => (filter === "all" ? s.log : s.log.filter((e) => e.kind === filter)), [s.log, filter]);
+  const entries = useMemo(() => (filter === "app" ? [] : filter === "all" ? s.log : s.log.filter((e) => e.kind === filter)), [s.log, filter]);
   const groups = useMemo(() => {
     const map = new Map<string, LogEntry[]>();
     for (const e of entries) {
@@ -139,7 +140,7 @@ export function LogPanel() {
       )}
 
       <div className="flex gap-1">
-        {(["all", "decision", "change"] as Filter[]).map((f) => (
+        {(["all", "decision", "change", "app"] as Filter[]).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
@@ -148,12 +149,24 @@ export function LogPanel() {
               filter === f ? "border-ink bg-ink text-ink-foreground" : "bg-background text-muted-foreground hover:text-foreground",
             )}
           >
-            {f === "all" ? "Everything" : f === "decision" ? "Decisions" : "Changes"}
+            {f === "all" ? "Everything" : f === "decision" ? "Decisions" : f === "change" ? "Changes" : "App updates"}
           </button>
         ))}
       </div>
 
-      {groups.length === 0 ? (
+      {filter === "app" ? (
+        <ol className="space-y-2">
+          {DEV_LOG.map((d, i) => (
+            <li key={i} className="rounded-lg border bg-card p-3 shadow-card">
+              <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">{d.date}</p>
+              <p className="text-sm font-medium">{d.title}</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4 text-xs text-muted-foreground">
+                {d.changes.map((c, j) => <li key={j}>{c}</li>)}
+              </ul>
+            </li>
+          ))}
+        </ol>
+      ) : groups.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-card p-8 text-center text-sm text-muted-foreground">
           Nothing logged yet. Edits to the canvas, version commits, test cards and recorded decisions will appear here.
         </div>
