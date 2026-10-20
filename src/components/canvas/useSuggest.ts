@@ -22,7 +22,7 @@ export function useSuggest() {
         toast("No new assumptions to suggest here — test the ones you have.");
         return;
       }
-      s.addItems(adds);
+      s.addItems(adds, "suggested");
       toast.success(
         `Added ${adds.length} untested assumption${adds.length > 1 ? "s" : ""}${target === "all" ? "" : ` to ${BLOCKS[target].title}`}. Generate test cards to go validate them.`,
       );

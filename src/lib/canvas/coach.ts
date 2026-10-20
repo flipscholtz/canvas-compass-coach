@@ -297,7 +297,8 @@ const ASSUMPTION_TEMPLATES: Record<BlockId, string[]> = {
 
 /** Deterministic, context-aware assumptions for a block (skips ones already on the canvas). */
 export function suggestAssumptions(canvas: Canvas, block: BlockId, count = 3): string[] {
-  const live = (b: BlockId) => canvas[b].find((i) => i.status !== "invalidated")?.text;
+  const live = (b: BlockId) =>
+    canvas[b].find((i) => i.status !== "invalidated" && i.source !== "suggested")?.text;
   const seg = live("segments") ?? "our target customers";
   const vp = live("valueProps")?.replace(/[.]+$/, "") ?? "our core benefit";
   const existing = new Set(canvas[block].map((i) => i.text.toLowerCase()));

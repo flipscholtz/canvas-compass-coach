@@ -43,3 +43,12 @@ describe("synthetic assumptions", () => {
     expect(suggestAssumptions(c, "costs")).not.toContain(first);
   });
 });
+
+it("ignores co-pilot suggestions when picking the segment to reference", () => {
+  const c = emptyCanvas();
+  c.segments = [
+    { id: "s", text: "Suggested thing", status: "hypothesis", source: "suggested" },
+    { id: "r", text: "Dental clinic managers", status: "hypothesis" },
+  ];
+  expect(suggestAssumptions(c, "revenue")[0]).toContain("Dental clinic managers");
+});

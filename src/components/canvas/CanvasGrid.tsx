@@ -134,6 +134,9 @@ function Note({ block, item, readOnly, isNew }: { block: BlockId; item: CanvasIt
       <span className={cn("mt-1 size-1.5 shrink-0 rounded-full", DOT[item.status])} />
       <span className="flex-1">{item.text}</span>
       {isNew && <span className="font-mono text-[9px] uppercase text-valid">new</span>}
+      {item.source === "suggested" && (
+        <span title="Suggested by the co-pilot" className="font-mono text-[9px] uppercase text-muted-foreground">sugg.</span>
+      )}
     </span>
   );
   if (readOnly) return body;
