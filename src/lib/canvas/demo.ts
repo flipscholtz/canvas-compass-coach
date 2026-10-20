@@ -1,4 +1,4 @@
-import type { Canvas, CanvasItem, CanvasVersion, ChatMessage, ItemStatus, TestCard } from "./types";
+import type { Canvas, CanvasItem, CanvasVersion, ChatMessage, ItemStatus, LogEntry, TestCard } from "./types";
 import { uid } from "./types";
 
 const i = (text: string, status: ItemStatus = "hypothesis"): CanvasItem => ({ id: uid(), text, status });
@@ -76,3 +76,13 @@ export const demoMessages = (): ChatMessage[] => [
     flags: ["Coherence: high-touch relationships need contract values that cover the people cost."],
   },
 ];
+
+export const demoLog = (): LogEntry[] =>
+  [
+    { at: "2026-05-28T10:30:00Z", kind: "decision", category: "version", author: "Thandi (CEO)", version: "v2.0", summary: "Pivoted: v2.0 · B2B Compliance Stack", rationale: "LOIs from 3 manufacturers; auditors asked for an assurance pack.", alternatives: "Stay horizontal across all SMEs; sell only via auditors." },
+    { at: "2026-05-20T09:00:00Z", kind: "decision", category: "decision", author: "Thandi (CEO)", version: "v1.1", summary: "Price per site, not per user", rationale: "Buyers budget by facility; 4 of 5 interviewees rejected per-seat pricing.", alternatives: "Per-seat pricing; usage-based per tonne CO₂e.", block: "revenue" as const },
+    { at: "2026-05-02T15:10:00Z", kind: "change", category: "added", author: "Sipho (Product)", version: "v1.1", summary: "Added “Compliance domain experts” to Key Resources", block: "keyResources" as const },
+    { at: "2026-03-17T14:00:00Z", kind: "decision", category: "version", author: "Thandi (CEO)", version: "v1.1", summary: "Pivoted from consumer app to B2B compliance", rationale: "12 consumer interviews: 0 willing to pay. 4 of 5 manufacturers described CSRD reporting as urgent and budgeted." },
+    { at: "2026-03-16T11:00:00Z", kind: "decision", category: "status", author: "Sipho (Product)", version: "v1.0", summary: "Marked “Eco-conscious millennials” as invalidated", rationale: "No willingness to pay across 12 interviews.", block: "segments" as const },
+    { at: "2026-02-03T09:00:00Z", kind: "change", category: "session", author: "Thandi (CEO)", version: "v1.0", summary: "Created initial canvas" },
+  ].map((e) => ({ ...e, id: uid() }) as LogEntry);
