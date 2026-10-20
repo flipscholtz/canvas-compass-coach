@@ -52,3 +52,44 @@ it("ignores co-pilot suggestions when picking the segment to reference", () => {
   ];
   expect(suggestAssumptions(c, "revenue")[0]).toContain("Dental clinic managers");
 });
+
+import { extractAssumptions, pickRiskiest, testCardFromAssumption } from "./assumptions";
+describe("assumption extraction & riskiest assumption", () => {
+  it("extracts 1–2 assumptions with the block's lens first", () => {
+    const a = extractAssumptions("valueProps", "Real-time AI diagnostics");
+    expect(a.length).toBeGreaterThanOrEqual(1);
+    expect(a.length).toBeLessThanOrEqual(2);
+    expect(a[0]!.lens).toBe("desirability");
+    expect(a[1]!.lens).toBe("feasibility");
+  });
+  it("tags revenue statements as viability", () => {
+    expect(extractAssumptions("revenue", "Annual licence")[0]!.lens).toBe("viability");
+  });
+  it("coach turn surfaces assumptions from the founder's answer", () => {
+    const r = coachTurn(emptyCanvas(), 2, "Cut audit preparation time from months to days");
+    expect(r.assumptions.length).toBeGreaterThan(0);
+  });
+  it("picks an untested customer-segment assumption over a cost one and skips validated items", () => {
+    const c = emptyCanvas();
+    c.costs = [{ id: "c", text: "Cloud hosting", status: "hypothesis" }];
+    c.segments = [
+      { id: "v", text: "Validated segment", status: "validated" },
+      { id: "s", text: "Dental clinic managers", status: "hypothesis" },
+    ];
+    const pick = pickRiskiest(c, []);
+    expect(pick?.item.id).toBe("s");
+    const card = testCardFromAssumption(pick!);
+    expect(card.hypothesis.startsWith("We believe that")).toBe(true);
+    expect(card.experiment.startsWith("To verify that, we will")).toBe(true);
+    expect(card.metric.startsWith("And measure")).toBe(true);
+    expect(card.criteria.startsWith("We are right if")).toBe(true);
+    expect(pickRiskiest(c, [card])?.assumption.text).not.toBe(pick!.assumption.text);
+  });
+});
+
+import { extractItems } from "./coach";
+it("keeps relative clauses attached to their segment", () => {
+  expect(extractItems("Practice managers at dental clinics, who own the admin budget")).toEqual([
+    "Practice managers at dental clinics, who own the admin budget",
+  ]);
+});

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Lightbulb, Loader2, Plus, Trash2 } from "lucide-react";
 import { useSuggest } from "./useSuggest";
+import { AssumptionChip } from "./AssumptionChip";
+import { extractAssumptions } from "@/lib/canvas/assumptions";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,16 @@ const STATUS_STYLE: Record<ItemStatus, string> = {
   hypothesis: "bg-hypo-soft border-hypo/40",
   validated: "bg-valid-soft border-valid/40",
   invalidated: "bg-invalid-soft border-invalid/40 line-through text-muted-foreground",
+};
+const BADGE: Record<ItemStatus, string> = {
+  hypothesis: "bg-hypo/15 text-hypo",
+  validated: "bg-valid/15 text-valid",
+  invalidated: "bg-invalid/15 text-invalid",
+};
+const STATUS_LABEL: Record<ItemStatus, string> = {
+  hypothesis: "Untested hypothesis",
+  validated: "Validated",
+  invalidated: "Invalidated",
 };
 const DOT: Record<ItemStatus, string> = { hypothesis: "bg-hypo", validated: "bg-valid", invalidated: "bg-invalid" };
 
@@ -122,21 +134,27 @@ function Block({ id, items, prev, readOnly }: { id: BlockId; items: CanvasItem[]
 function Note({ block, item, readOnly, isNew }: { block: BlockId; item: CanvasItem; readOnly: boolean; isNew: boolean }) {
   const { updateItem, deleteItem } = useCanvasStore();
   const [text, setText] = useState(item.text);
+  const assumptions = item.assumptions?.length ? item.assumptions : extractAssumptions(block, item.text);
   const body = (
     <span
       className={cn(
-        "flex w-full items-start gap-1.5 rounded-md border px-2 py-1.5 text-left text-xs leading-snug transition-shadow",
+        "flex w-full flex-col gap-1 rounded-md border px-2 py-1.5 text-left text-xs leading-snug transition-shadow",
         STATUS_STYLE[item.status],
         isNew && "ring-2 ring-valid/60",
         !readOnly && "hover:shadow-card cursor-pointer",
       )}
     >
-      <span className={cn("mt-1 size-1.5 shrink-0 rounded-full", DOT[item.status])} />
-      <span className="flex-1">{item.text}</span>
-      {isNew && <span className="font-mono text-[9px] uppercase text-valid">new</span>}
-      {item.source === "suggested" && (
-        <span title="Suggested by the co-pilot" className="font-mono text-[9px] uppercase text-muted-foreground">sugg.</span>
-      )}
+      <span>{item.text}</span>
+      <span className="flex flex-wrap items-center gap-1 no-underline">
+        <span className={cn("inline-flex items-center gap-1 rounded-full px-1.5 py-px font-mono text-[9px] uppercase", BADGE[item.status])}>
+          <span className={cn("size-1.5 rounded-full", DOT[item.status])} />
+          {STATUS_LABEL[item.status]}
+        </span>
+        {isNew && <span className="font-mono text-[9px] uppercase text-valid">new</span>}
+        {item.source === "suggested" && (
+          <span title="Suggested by the co-pilot" className="font-mono text-[9px] uppercase text-muted-foreground">sugg.</span>
+        )}
+      </span>
     </span>
   );
   if (readOnly) return body;
@@ -145,7 +163,15 @@ function Note({ block, item, readOnly, isNew }: { block: BlockId; item: CanvasIt
       <PopoverTrigger asChild>
         <button className="w-full">{body}</button>
       </PopoverTrigger>
-      <PopoverContent className="w-72 space-y-3">
+      <PopoverContent className="w-80 space-y-3">
+        <div className="space-y-1.5 rounded-md border bg-muted/50 p-2.5">
+          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+            Underlying assumption{assumptions.length > 1 ? "s" : ""}
+          </p>
+          {assumptions.map((a) => (
+            <AssumptionChip key={a.text} assumption={a} />
+          ))}
+        </div>
         <Textarea value={text} onChange={(e) => setText(e.target.value)} className="min-h-16 text-sm" />
         <div className="grid grid-cols-3 gap-1">
           {(["hypothesis", "validated", "invalidated"] as ItemStatus[]).map((st) => (
