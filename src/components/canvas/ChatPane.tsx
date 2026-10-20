@@ -59,7 +59,8 @@ export function ChatPane() {
   function quick(key: (typeof QUICK)[number]["key"]) {
     if (s.apiKey && key !== "skip") {
       const prompt = QUICK.find((q) => q.key === key)!.label;
-      return send(prompt);
+      void send(prompt);
+      return;
     }
     if (key === "coherence") {
       const flags = coherenceFlags(head);
