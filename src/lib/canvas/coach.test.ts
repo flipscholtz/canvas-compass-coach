@@ -86,3 +86,10 @@ describe("assumption extraction & riskiest assumption", () => {
     expect(pickRiskiest(c, [card])?.assumption.text).not.toBe(pick!.assumption.text);
   });
 });
+
+import { extractItems } from "./coach";
+it("keeps relative clauses attached to their segment", () => {
+  expect(extractItems("Practice managers at dental clinics, who own the admin budget")).toEqual([
+    "Practice managers at dental clinics, who own the admin budget",
+  ]);
+});

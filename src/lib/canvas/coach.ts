@@ -119,6 +119,12 @@ export function extractItems(answer: string): string[] {
     .split(/[;\n]|,(?![^(]*\))|\band also\b/i)
     .map((s) => s.trim().replace(/^[-•*]\s*/, "").replace(/[.]+$/, ""))
     .filter((s) => s.length > 2)
+    // Keep relative clauses ("…, who own the budget") attached to the item they describe.
+    .reduce<string[]>((acc, part) => {
+      if (acc.length && /^(who|which|that|where|whose|with|and who)\b/i.test(part)) acc[acc.length - 1] += `, ${part}`;
+      else acc.push(part);
+      return acc;
+    }, [])
     .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
     .slice(0, 5);
 }
