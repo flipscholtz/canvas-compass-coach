@@ -14,6 +14,7 @@ import { ChatPane } from "@/components/canvas/ChatPane";
 import { CanvasGrid } from "@/components/canvas/CanvasGrid";
 import { StackBar } from "@/components/canvas/StackBar";
 import { TestCards } from "@/components/canvas/TestCards";
+import { LogPanel } from "@/components/canvas/LogPanel";
 import { SuggestAllButton } from "@/components/canvas/SuggestAllButton";
 
 export const Route = createFileRoute("/")({
@@ -41,7 +42,8 @@ function Index() {
 
 function App() {
   const s = useCanvasStore();
-  const [tab, setTab] = useState<"chat" | "canvas">("chat");
+  const [tab, setTab] = useState<"chat" | "right">("chat");
+  const [rightView, setRightView] = useState<"canvas" | "log">("canvas");
   const [settings, setSettings] = useState(false);
   const [key, setKey] = useState(s.apiKey);
   const [model, setModel] = useState(s.model);
@@ -82,10 +84,20 @@ function App() {
       </header>
 
       <div className="border-b bg-paper px-4 py-2 lg:hidden">
-        <Tabs value={tab} onValueChange={(v) => setTab(v as "chat" | "canvas")}>
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs
+          value={tab === "chat" ? "chat" : rightView}
+          onValueChange={(v) => {
+            if (v === "chat") setTab("chat");
+            else {
+              setTab("right");
+              setRightView(v as "canvas" | "log");
+            }
+          }}
+        >
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="chat">Coach</TabsTrigger>
             <TabsTrigger value="canvas">Canvas</TabsTrigger>
+            <TabsTrigger value="log">Log</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -94,8 +106,29 @@ function App() {
         <div className={cn("min-h-0 border-r", tab !== "chat" && "hidden lg:block")}>
           <ChatPane />
         </div>
-        <div className={cn("min-h-0 overflow-y-auto grid-paper", tab !== "canvas" && "hidden lg:block")}>
+        <div className={cn("min-h-0 overflow-y-auto grid-paper", tab !== "right" && "hidden lg:block")}>
           <div className="space-y-3 p-4 lg:p-6">
+            <div className="hidden gap-1 border-b lg:flex">
+              {(["canvas", "log"] as const).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setRightView(v)}
+                  className={cn(
+                    "-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors",
+                    rightView === v ? "border-signal text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {v === "canvas" ? "Canvas" : "Changelog & Decisions"}
+                  {v === "log" && s.log.length > 0 && (
+                    <span className="ml-1.5 rounded-full bg-muted px-1.5 font-mono text-[10px]">{s.log.length}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+            {rightView === "log" ? (
+              <LogPanel />
+            ) : (
+            <>
             <StackBar />
             {readOnly && (
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-accent px-3 py-2 text-xs text-accent-foreground">
@@ -118,6 +151,8 @@ function App() {
             {!readOnly && <SuggestAllButton />}
             </div>
             <TestCards />
+            </>
+            )}
           </div>
         </div>
       </main>
