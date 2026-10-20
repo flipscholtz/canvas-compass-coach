@@ -1,4 +1,4 @@
-import { FlaskConical, Sparkles as _unused, Trash2, ChevronDown } from "lucide-react";
+import { FlaskConical, Trash2, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -6,7 +6,6 @@ import { useCanvasStore } from "@/lib/canvas/store";
 import { generateTestCard, riskiestAssumption } from "@/lib/canvas/coach";
 import { BLOCKS } from "@/lib/canvas/types";
 
-void _unused;
 
 export function TestCards({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   const s = useCanvasStore();
