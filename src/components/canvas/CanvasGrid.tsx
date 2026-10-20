@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Lightbulb, Loader2, Plus, Trash2 } from "lucide-react";
 import { useSuggest } from "./useSuggest";
+import { AssumptionChip } from "./AssumptionChip";
+import { extractAssumptions } from "@/lib/canvas/assumptions";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,16 @@ const STATUS_STYLE: Record<ItemStatus, string> = {
   hypothesis: "bg-hypo-soft border-hypo/40",
   validated: "bg-valid-soft border-valid/40",
   invalidated: "bg-invalid-soft border-invalid/40 line-through text-muted-foreground",
+};
+const BADGE: Record<ItemStatus, string> = {
+  hypothesis: "bg-hypo/15 text-hypo",
+  validated: "bg-valid/15 text-valid",
+  invalidated: "bg-invalid/15 text-invalid",
+};
+const STATUS_LABEL: Record<ItemStatus, string> = {
+  hypothesis: "Untested hypothesis",
+  validated: "Validated",
+  invalidated: "Invalidated",
 };
 const DOT: Record<ItemStatus, string> = { hypothesis: "bg-hypo", validated: "bg-valid", invalidated: "bg-invalid" };
 
