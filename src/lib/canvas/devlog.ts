@@ -7,6 +7,15 @@ export interface DevLogEntry {
 
 export const DEV_LOG: DevLogEntry[] = [
   {
+    date: "2026-10-26",
+    title: "Canvas-grounded coherence checks",
+    changes: [
+      "Check coherence reviews all nine blocks using the current working canvas or selected snapshot, without requiring an API key.",
+      "Prioritised findings quote actual entries, distinguish untested claims and missing information, and ask specific delivery, pricing, channel and cost questions.",
+      "Financial reviews request customer numbers and cost estimates rather than assuming a venture is unprofitable. Unchanged repeat checks do not duplicate chat messages.",
+    ],
+  },
+  {
     date: "2026-10-20",
     title: "App updates log",
     changes: ["Added this “App updates” view so every change made to the app is recorded here."],

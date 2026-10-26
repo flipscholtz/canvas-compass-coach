@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import { STEPS } from "./coach";
 import { demoCards, demoLog, demoMessages, demoVersions } from "./demo";
 import { extractAssumptions } from "./assumptions";
+import { analyzeCoherence, coherenceKey, formatCoherenceFinding } from "./coherence";
 import {
   type Assumption,
   type BlockId,
@@ -39,6 +40,7 @@ interface State {
   updateItem: (block: BlockId, id: string, patch: Partial<CanvasItem>) => void;
   deleteItem: (block: BlockId, id: string) => void;
   pushMessage: (m: Omit<ChatMessage, "id">) => void;
+  checkCoherence: () => boolean;
   setProgress: (step: number, stage: Stage) => void;
   commitVersion: (label: string, note: string) => void;
   setViewing: (id: string | null) => void;
@@ -139,6 +141,20 @@ export const useCanvasStore = create<State>()(
           };
         }),
       pushMessage: (m) => set((s) => ({ messages: [...s.messages, { ...m, id: uid() }] })),
+      checkCoherence: () => {
+        let added = false;
+        set((s) => {
+          const version = s.viewingId ? s.versions.find((v) => v.id === s.viewingId) : s.versions.at(-1);
+          if (!version) return {};
+          const key = coherenceKey(version.canvas);
+          const previous = s.messages.findLast((m) => m.coherenceKey !== undefined);
+          if (previous?.coherenceKey === key) return {};
+          const report = analyzeCoherence(version.canvas);
+          added = true;
+          return { messages: [...s.messages, { id: uid(), role: "coach", coherenceKey: key, text: `${s.viewingId ? "Snapshot" : "Working canvas"}: ${version.label}\n${report.summary}`, flags: report.findings.map(formatCoherenceFinding) }] };
+        });
+        return added;
+      },
       setProgress: (step, stage) => set({ step, stage }),
       commitVersion: (label, note) =>
         set((s) => {

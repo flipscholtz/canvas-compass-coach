@@ -56,6 +56,8 @@ export interface ChatMessage {
   text: string;
   flags?: string[];
   assumptions?: Assumption[];
+  /** Content/status fingerprint for idempotent local coherence checks. */
+  coherenceKey?: string;
 }
 
 export type Stage = 1 | 2 | 3 | 4 | 5;
