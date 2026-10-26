@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCanvasStore } from "@/lib/canvas/store";
 import { STAGES } from "@/lib/canvas/types";
-import { coachTurn, coherenceFlags, STEPS } from "@/lib/canvas/coach";
+import { coachTurn, STEPS } from "@/lib/canvas/coach";
 import { useRiskiest } from "./useRiskiest";
 import { AssumptionChip } from "./AssumptionChip";
 import { llmTurn } from "@/lib/canvas/llm";
@@ -25,7 +25,7 @@ export function ChatPane() {
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const identifyRiskiest = useRiskiest();
-  const head = s.versions[s.versions.length - 1]!.canvas;
+  const head = s.versions.at(-1)?.canvas;
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -33,7 +33,7 @@ export function ChatPane() {
 
   async function send(text: string) {
     const t = text.trim();
-    if (!t || busy) return;
+    if (!t || busy || !head) return;
     setInput("");
     s.pushMessage({ role: "user", text: t });
     setBusy(true);
@@ -64,21 +64,17 @@ export function ChatPane() {
       identifyRiskiest();
       return;
     }
-    if (s.apiKey && key !== "skip") {
-      const prompt = QUICK.find((q) => q.key === key)!.label;
-      void send(prompt);
+    if (key === "coherence") {
+      if (!s.checkCoherence()) toast.info("The canvas is unchanged; your latest coherence review is still current.");
       return;
     }
-    if (key === "coherence") {
-      const flags = coherenceFlags(head);
-      s.pushMessage({
-        role: "coach",
-        text: flags.length
-          ? `I found ${flags.length} tension${flags.length > 1 ? "s" : ""} across your blocks. Which one are you least comfortable defending?`
-          : "No obvious contradictions between blocks yet. That usually means a block is still too thin — which one have you said least about?",
-        flags,
-      });
-    } else if (key === "vp") {
+    if (!head) return;
+    if (s.apiKey && key !== "skip") {
+      const prompt = QUICK.find((q) => q.key === key)?.label;
+      if (prompt) void send(prompt);
+      return;
+    }
+    if (key === "vp") {
       const vp = head.valueProps[0];
       s.pushMessage({
         role: "coach",
@@ -88,8 +84,10 @@ export function ChatPane() {
       });
     } else {
       const next = Math.min(s.step + 1, STEPS.length - 1);
-      s.setProgress(next, STEPS[next]!.stage);
-      s.pushMessage({ role: "coach", text: `Parking that. ${STEPS[next]!.question}` });
+      const step = STEPS[next];
+      if (!step) return;
+      s.setProgress(next, step.stage);
+      s.pushMessage({ role: "coach", text: `Parking that. ${step.question}` });
     }
   }
 
@@ -138,7 +136,7 @@ export function ChatPane() {
                 <Compass className="size-4" />
               </div>
               <div className="max-w-[90%] space-y-2">
-                <p className="text-sm leading-relaxed">{m.text}</p>
+                <p className="whitespace-pre-line break-words text-sm leading-relaxed">{m.text}</p>
                 {!!m.assumptions?.length && (
                   <div className="space-y-1.5 rounded-md border bg-background p-2.5">
                     <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -155,7 +153,7 @@ export function ChatPane() {
                     className="flex gap-2 rounded-md border border-signal/30 bg-accent px-3 py-2 text-xs text-accent-foreground"
                   >
                     <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-                    <span>{f}</span>
+                    <span className="min-w-0 whitespace-pre-line break-words">{f}</span>
                   </div>
                 ))}
               </div>
@@ -173,19 +171,22 @@ export function ChatPane() {
       <div className="border-t px-5 py-4">
         <div className="mb-3 flex flex-wrap gap-1.5">
           {QUICK.map((q) => (
-            <button
+            <Button
               key={q.key}
+              type="button"
+              variant="outline"
+              size="sm"
               onClick={() => quick(q.key)}
               disabled={busy}
               className={cn(
-                "rounded-full border px-2.5 py-1 text-xs transition-colors disabled:opacity-50",
+                "h-auto whitespace-normal rounded-full border px-2.5 py-1 text-xs transition-colors disabled:opacity-50",
                 q.key === "risk"
                   ? "border-signal bg-signal text-signal-foreground hover:bg-signal/90"
                   : "bg-background text-muted-foreground hover:border-signal hover:text-foreground",
               )}
             >
               {q.label}
-            </button>
+            </Button>
           ))}
         </div>
         <form

@@ -1,0 +1,3 @@
+- [x] Add current-canvas coherence analysis and duplicate-check protection.
+- [x] Test empty, tutoring, financial, changed, uncertain and repeated-check scenarios.
+- [x] Verify the coach in the app and update App updates.
