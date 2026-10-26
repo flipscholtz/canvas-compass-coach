@@ -147,7 +147,7 @@ export const useCanvasStore = create<State>()(
           const version = s.viewingId ? s.versions.find((v) => v.id === s.viewingId) : s.versions.at(-1);
           if (!version) return {};
           const key = coherenceKey(version.canvas);
-          const previous = s.messages.findLast((m) => m.coherenceKey !== undefined);
+          const previous = [...s.messages].reverse().find((m) => m.coherenceKey !== undefined);
           if (previous?.coherenceKey === key) return {};
           const report = analyzeCoherence(version.canvas);
           added = true;

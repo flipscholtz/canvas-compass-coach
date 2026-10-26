@@ -39,7 +39,7 @@ export function analyzeCoherence(canvas: Canvas) {
   if (active("revenue").length || active("costs").length) {
     const missing = [
       ...(!MONEY.test(text("revenue")) ? ["price and billing unit"] : []),
-      ...(!/\b\d[\d,]*\s+(?:paying\s+)?(?:learners|students|customers|subscribers|clients)\b/i.test(text("revenue") + text("segments")) ? [tutoring ? "expected paying learner numbers" : "expected paying customer numbers"] : []),
+      ...(!/\b(?:\d[\d,]*\s+paying\s+(?:learners|students|customers|subscribers|clients)|(?:expect|target|forecast)\w*\s+(?:of\s+)?\d[\d,]*\s+(?:paying\s+)?(?:learners|students|customers|subscribers|clients))\b/i.test(text("revenue") + " " + text("segments")) ? [tutoring ? "expected paying learner numbers" : "expected paying customer numbers"] : []),
       ...(!MONEY.test(text("costs")) ? [tutoring ? "tutor payment rates and other operating expense amounts" : "operating expense amounts"] : []),
       ...(!/fixed|variable|per (?:learner|customer|session|hour)|monthly|per month/i.test(text("costs")) ? ["fixed versus variable costs and their time basis"] : []),
     ];
