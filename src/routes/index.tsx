@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Eye, Layers, RotateCcw, Settings, Sparkle } from "lucide-react";
+import { Eye, Layers, PanelLeftClose, PanelLeftOpen, RotateCcw, Settings, Sparkle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -44,6 +44,7 @@ function App() {
   const s = useCanvasStore();
   const [tab, setTab] = useState<"chat" | "right">("chat");
   const [rightView, setRightView] = useState<"canvas" | "log">("canvas");
+  const [coachOpen, setCoachOpen] = useState(true);
   const [settings, setSettings] = useState(false);
   const [key, setKey] = useState(s.apiKey);
   const [model, setModel] = useState(s.model);
@@ -77,6 +78,16 @@ function App() {
           <Button size="sm" variant="outline" onClick={() => confirm("Clear the canvas stack and restart intake?") && s.reset()}>
             <RotateCcw /> Reset
           </Button>
+          <Button
+            size="icon"
+            variant="outline"
+            className="hidden size-8 lg:inline-flex"
+            aria-label={coachOpen ? "Collapse coach panel" : "Expand coach panel"}
+            title={coachOpen ? "Collapse coach panel" : "Expand coach panel"}
+            onClick={() => setCoachOpen((o) => !o)}
+          >
+            {coachOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
+          </Button>
           <Button size="icon" variant="outline" className="size-8" aria-label="Settings" onClick={() => { setKey(s.apiKey); setModel(s.model); setSettings(true); }}>
             <Settings />
           </Button>
@@ -102,8 +113,8 @@ function App() {
         </Tabs>
       </div>
 
-      <main className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,42fr)_minmax(0,58fr)]">
-        <div className={cn("min-h-0 border-r", tab !== "chat" && "hidden lg:block")}>
+      <main className={cn("grid min-h-0 flex-1", coachOpen && "lg:grid-cols-[minmax(0,42fr)_minmax(0,58fr)]")}>
+        <div className={cn("min-h-0 border-r", tab !== "chat" && "hidden lg:block", !coachOpen && "lg:hidden")}>
           <ChatPane />
         </div>
         <div className={cn("min-h-0 overflow-y-auto grid-paper", tab !== "right" && "hidden lg:block")}>

@@ -7,6 +7,13 @@ export interface DevLogEntry {
 
 export const DEV_LOG: DevLogEntry[] = [
   {
+    date: "2026-10-27",
+    title: "Collapsible coach panel",
+    changes: [
+      "New toggle button in the header collapses the Socratic Coach so the canvas fills the whole screen; click again to bring it back.",
+    ],
+  },
+  {
     date: "2026-10-26",
     title: "Canvas-grounded coherence checks",
     changes: [
