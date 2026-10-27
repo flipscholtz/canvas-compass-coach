@@ -85,7 +85,7 @@ export function coherenceKey(canvas: Canvas) {
 
 export function formatCoherenceFinding(finding: CoherenceFinding) {
   const label = { missing: "Missing information", potential: "Potential inconsistency / open question", recorded: "Recorded information" }[finding.kind];
-  const lines = finding.entries.map(({ block, item }) => `${BLOCKS[block].title} — “${item.text}” [${item.status === "validated" ? "Marked validated; evidence not verified" : item.status === "invalidated" ? "Invalidated" : "Untested hypothesis"}]`);
+  const lines = finding.entries.map(({ block, item }) => `${BLOCKS[block].title} — “${item.text}” [${item.status === "validated" ? (item.evidence ? `Validated by ${item.evidence.test}: ${item.evidence.result}` : "Marked validated; no evidence recorded") : item.status === "invalidated" ? "Invalidated" : "Untested hypothesis"}]`);
   const empty = finding.blocks.filter((block) => !finding.entries.some((entry) => entry.block === block));
   return `${finding.title}\n${label} · ${finding.blocks.map((block) => BLOCKS[block].title).join(" / ")}\n${[...lines, ...empty.map((block) => `${BLOCKS[block].title} — no active entries`)].join("\n")}\nWhy it matters: ${finding.why}\nNext: ${finding.action}`;
 }

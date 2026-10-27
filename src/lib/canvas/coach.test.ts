@@ -173,3 +173,18 @@ describe("tier-1 fixes", () => {
     expect(useCanvasStore.getState().scenarios.filter((x) => x.demo).length).toBe(2);
   });
 });
+
+describe("evidence-backed verdicts", () => {
+  it("refuses to validate without a test and result, accepts with both", () => {
+    const st = useCanvasStore.getState();
+    st.newScenario();
+    useCanvasStore.getState().addItems([{ block: "revenue", text: "Parents pay R250" }]);
+    const id = useCanvasStore.getState().versions.at(-1)!.canvas.revenue[0]!.id;
+    useCanvasStore.getState().updateItem("revenue", id, { status: "validated" });
+    expect(useCanvasStore.getState().versions.at(-1)!.canvas.revenue[0]!.status).toBe("hypothesis");
+    useCanvasStore.getState().updateItem("revenue", id, { status: "validated", evidence: { test: "Pre-sale", result: "3 of 10 paid", at: "x" } });
+    const item = useCanvasStore.getState().versions.at(-1)!.canvas.revenue[0]!;
+    expect(item.status).toBe("validated");
+    expect(useCanvasStore.getState().log[0]!.rationale).toContain("3 of 10 paid");
+  });
+});

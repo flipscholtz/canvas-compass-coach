@@ -132,8 +132,11 @@ function Block({ id, items, prev, readOnly }: { id: BlockId; items: CanvasItem[]
 }
 
 function Note({ block, item, readOnly, isNew }: { block: BlockId; item: CanvasItem; readOnly: boolean; isNew: boolean }) {
-  const { updateItem, deleteItem } = useCanvasStore();
+  const { updateItem, deleteItem, cards } = useCanvasStore();
   const [text, setText] = useState(item.text);
+  const [verdict, setVerdict] = useState<null | "validated" | "invalidated">(null);
+  const [test, setTest] = useState("");
+  const [result, setResult] = useState("");
   const assumptions = item.assumptions?.length ? item.assumptions : extractAssumptions(block, item.text);
   const body = (
     <span
@@ -159,7 +162,7 @@ function Note({ block, item, readOnly, isNew }: { block: BlockId; item: CanvasIt
   );
   if (readOnly) return body;
   return (
-    <Popover onOpenChange={(o) => o && setText(item.text)}>
+    <Popover onOpenChange={(o) => { if (o) { setText(item.text); setVerdict(null); } }}>
       <PopoverTrigger asChild>
         <button className="w-full">{body}</button>
       </PopoverTrigger>
@@ -177,7 +180,10 @@ function Note({ block, item, readOnly, isNew }: { block: BlockId; item: CanvasIt
           {(["hypothesis", "validated", "invalidated"] as ItemStatus[]).map((st) => (
             <button
               key={st}
-              onClick={() => updateItem(block, item.id, { status: st })}
+              onClick={() => {
+                if (st === "hypothesis") { updateItem(block, item.id, { status: st }); setVerdict(null); }
+                else { setVerdict(st); setTest(item.evidence?.test ?? cards.find((c) => c.block === block)?.title ?? ""); setResult(""); }
+              }}
               className={cn(
                 "flex items-center justify-center gap-1 rounded-md border px-1 py-1 text-[11px] capitalize",
                 item.status === st ? STATUS_STYLE[st].replace("line-through", "") + " font-medium" : "hover:bg-muted",
@@ -188,6 +194,47 @@ function Note({ block, item, readOnly, isNew }: { block: BlockId; item: CanvasIt
             </button>
           ))}
         </div>
+        {item.evidence && !verdict && (
+          <p className="rounded-md border bg-muted/50 p-2 text-[11px]">
+            <span className="font-medium">Evidence:</span> {item.evidence.test} — {item.evidence.result}
+          </p>
+        )}
+        {verdict && (
+          <div className="space-y-2 rounded-md border border-signal/40 p-2.5">
+            <p className="text-xs font-medium">What backs up “{verdict}”?</p>
+            <label className="block text-[11px] text-muted-foreground">
+              Which test?
+              <input
+                list={`tests-${item.id}`}
+                value={test}
+                onChange={(e) => setTest(e.target.value)}
+                placeholder="e.g. 10 parent interviews"
+                className="mt-1 w-full rounded-md border bg-background px-2 py-1 text-xs text-foreground outline-none focus:border-signal"
+              />
+              <datalist id={`tests-${item.id}`}>
+                {cards.map((c) => <option key={c.id} value={c.title} />)}
+              </datalist>
+            </label>
+            <label className="block text-[11px] text-muted-foreground">
+              What was the result?
+              <Textarea value={result} onChange={(e) => setResult(e.target.value)} placeholder="e.g. 7 of 10 said they'd pay R250; 3 pre-paid" className="mt-1 min-h-12 text-xs text-foreground" />
+            </label>
+            <div className="flex justify-end gap-1">
+              <Button variant="ghost" size="sm" onClick={() => setVerdict(null)}>Cancel</Button>
+              <Button
+                size="sm"
+                disabled={!test.trim() || !result.trim()}
+                onClick={() => {
+                  const card = cards.find((c) => c.title === test.trim());
+                  updateItem(block, item.id, { status: verdict, evidence: { test: test.trim(), result: result.trim(), at: new Date().toISOString(), ...(card ? { testCardId: card.id } : {}) } });
+                  setVerdict(null);
+                }}
+              >
+                Mark {verdict}
+              </Button>
+            </div>
+          </div>
+        )}
         <div className="flex justify-between">
           <Button variant="ghost" size="sm" onClick={() => deleteItem(block, item.id)} className="text-destructive">
             <Trash2 /> Delete

@@ -26,6 +26,15 @@ export interface CanvasItem {
   source?: "suggested";
   /** Underlying assumptions the coach surfaced from this statement */
   assumptions?: Assumption[];
+  /** Required to mark an item validated/invalidated: which test and what result backs the verdict */
+  evidence?: Evidence;
+}
+
+export interface Evidence {
+  test: string;
+  testCardId?: string;
+  result: string;
+  at: string;
 }
 
 export type Canvas = Record<BlockId, CanvasItem[]>;
