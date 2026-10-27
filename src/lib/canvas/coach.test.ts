@@ -53,7 +53,7 @@ it("ignores co-pilot suggestions when picking the segment to reference", () => {
   expect(suggestAssumptions(c, "revenue")[0]).toContain("Dental clinic managers");
 });
 
-import { extractAssumptions, pickRiskiest, testCardFromAssumption } from "./assumptions";
+import { extractAssumptions, pickRiskiest, stripBelievePrefix, testCardFromAssumption } from "./assumptions";
 describe("assumption extraction & riskiest assumption", () => {
   it("extracts 1–2 assumptions with the block's lens first", () => {
     const a = extractAssumptions("valueProps", "Real-time AI diagnostics");
@@ -84,6 +84,21 @@ describe("assumption extraction & riskiest assumption", () => {
     expect(card.metric.startsWith("And measure")).toBe(true);
     expect(card.criteria.startsWith("We are right if")).toBe(true);
     expect(pickRiskiest(c, [card])?.assumption.text).not.toBe(pick!.assumption.text);
+  });
+  it("never doubles the 'We believe that' prefix on assumptions or test cards", () => {
+    expect(stripBelievePrefix("We believe that parents will pay R250")).toBe("parents will pay R250");
+    expect(stripBelievePrefix("we believe that parents will pay R250")).toBe("parents will pay R250");
+    expect(stripBelievePrefix("schools will promote the offer")).toBe("schools will promote the offer");
+    const pick = pickRiskiest(
+      emptyCanvas(),
+      [],
+    ) ?? {
+      block: "revenue" as const,
+      item: { id: "x", text: "Parents pay R250/month", status: "hypothesis" as const },
+      assumption: { lens: "viability" as const, text: "We believe that parents will pay R250/month" },
+    };
+    const card = testCardFromAssumption(pick);
+    expect(card.hypothesis).toBe("We believe that parents will pay R250/month.");
   });
 });
 
