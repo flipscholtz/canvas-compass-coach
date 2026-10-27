@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Eye, Layers, PanelLeftClose, PanelLeftOpen, RotateCcw, Settings, Sparkle } from "lucide-react";
+import { Eye, Layers, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import { StackBar } from "@/components/canvas/StackBar";
 import { TestCards } from "@/components/canvas/TestCards";
 import { LogPanel } from "@/components/canvas/LogPanel";
 import { JourneyPanel } from "@/components/canvas/JourneyPanel";
+import { ScenarioMenu } from "@/components/canvas/ScenarioMenu";
 import { SuggestAllButton } from "@/components/canvas/SuggestAllButton";
 
 export const Route = createFileRoute("/")({
@@ -73,12 +74,7 @@ function App() {
           </div>
         </div>
         <div className="flex gap-1.5">
-          <Button size="sm" variant="default" onClick={s.loadDemo} className="bg-signal text-signal-foreground hover:bg-signal/90">
-            <Sparkle /> Load Demo Scenario
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => confirm("Clear the canvas stack and restart intake?") && s.reset()}>
-            <RotateCcw /> Reset
-          </Button>
+          <ScenarioMenu />
           <Button
             size="icon"
             variant="outline"
