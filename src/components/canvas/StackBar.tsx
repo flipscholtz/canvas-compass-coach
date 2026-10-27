@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useCanvasStore } from "@/lib/canvas/store";
 import { exportJson, exportMarkdown } from "@/lib/canvas/export";
-import { BLOCK_ORDER } from "@/lib/canvas/types";
+import { BLOCK_ORDER, BLOCKS, type BlockId } from "@/lib/canvas/types";
+import { MIN_FILLED_BLOCKS, PATTERN_SOURCE, PATTERNS, blocksForPivot, filledBlocks, suggestPattern } from "@/lib/canvas/patterns";
 
 function nextLabel(count: number, pivot: boolean, lastLabel: string) {
   const m = lastLabel.match(/v(\d+)\.(\d+)/);
@@ -23,6 +23,12 @@ export function StackBar() {
   const [timeline, setTimeline] = useState(false);
   const [title, setTitle] = useState("");
   const [note, setNote] = useState("");
+  const [pivotPath, setPivotPath] = useState<null | "known" | "pattern">(null);
+  const head = s.versions[s.versions.length - 1]!;
+  const filled = filledBlocks(head.canvas).length;
+  const sugg = pivotPath === "pattern" ? suggestPattern(head.canvas) : null;
+  const focus: BlockId[] = mode !== "pivot" ? [] : sugg ? sugg.changes : blocksForPivot(title);
+  const close = () => { setTitle(""); setNote(""); setMode(null); setPivotPath(null); };
   const headId = s.versions[s.versions.length - 1]!.id;
   const activeId = s.viewingId ?? headId;
 
@@ -96,39 +102,67 @@ export function StackBar() {
         })}
       </div>
 
-      <Dialog open={!!mode} onOpenChange={(o) => !o && setMode(null)}>
-        <DialogContent>
+      <Dialog open={!!mode} onOpenChange={(o) => !o && close()}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display">{mode === "pivot" ? "Fork a new pivot" : "Commit version & snapshot"}</DialogTitle>
             <DialogDescription>
-              The current canvas is frozen as a snapshot and a new working copy is stacked on top.
+              The current canvas stays unchanged as a snapshot and a new working copy is stacked on top.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="vtitle">Version name</Label>
-              <Input id="vtitle" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Post-Interview Pivot" />
+          {mode === "pivot" && !pivotPath ? (
+            <div className="grid gap-2">
+              <Button variant="outline" className="h-auto justify-start py-3 text-left" onClick={() => setPivotPath("known")}>
+                <span><b className="block">I know my pivot</b><span className="text-xs text-muted-foreground">Name it in one line and fork straight away.</span></span>
+              </Button>
+              <Button variant="outline" disabled={filled < MIN_FILLED_BLOCKS} className="h-auto justify-start py-3 text-left" onClick={() => setPivotPath("pattern")}>
+                <span><b className="block">Suggest a pattern</b><span className="text-xs text-muted-foreground">The coach compares your canvas to known business model patterns.</span></span>
+              </Button>
+              {filled < MIN_FILLED_BLOCKS && (
+                <p className="text-xs text-muted-foreground">Fill at least {MIN_FILLED_BLOCKS} blocks first ({filled} so far) — a pattern can't be read from a thin canvas.</p>
+              )}
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="vnote">What hypothesis or market signal triggered this?</Label>
-              <Textarea id="vnote" value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. 6 of 8 interviewees had no budget…" />
+          ) : (
+            <div className="space-y-3">
+              {sugg && (
+                <div className="space-y-2 rounded-md border bg-muted/50 p-3 text-sm">
+                  <p>{sugg.why}</p>
+                  <p>Alternative to explore: <b>{PATTERNS[sugg.alternative].name}</b>.</p>
+                  <p className="font-medium">{sugg.question}</p>
+                  <p className="font-mono text-[10px] text-muted-foreground">Source: {PATTERN_SOURCE}</p>
+                </div>
+              )}
+              {!sugg && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="vtitle">{mode === "pivot" ? "Name your pivot in one line" : "Version name"}</Label>
+                  <Input id="vtitle" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={mode === "pivot" ? "e.g. new customer segment" : "e.g. Post-Interview Pivot"} />
+                </div>
+              )}
+              {focus.length > 0 && (
+                <p className="text-xs text-muted-foreground">Blocks to rewrite yourself: <span className="text-foreground">{focus.map((b) => BLOCKS[b].title).join(", ")}</span></p>
+              )}
+              <div className="space-y-1.5">
+                <Label htmlFor="vnote">{mode === "pivot" ? "One-line reason for this pivot" : "What hypothesis or market signal triggered this?"}</Label>
+                <Input id="vnote" value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. 6 of 8 interviewees had no budget" />
+              </div>
             </div>
-          </div>
-          <DialogFooter>
-            <Button
-              disabled={!note.trim()}
-              onClick={() => {
-                const last = s.versions[s.versions.length - 1]!;
-                const ver = nextLabel(s.versions.length, mode === "pivot", last.label);
-                s.commitVersion(`${ver} · ${title.trim() || (mode === "pivot" ? "Pivot" : "Iteration")}`, note.trim());
-                setTitle("");
-                setNote("");
-                setMode(null);
-              }}
-            >
-              {mode === "pivot" ? "Fork pivot" : "Commit"}
-            </Button>
-          </DialogFooter>
+          )}
+          {(mode === "commit" || pivotPath) && (
+            <DialogFooter>
+              <Button variant="ghost" onClick={close}>Cancel</Button>
+              <Button
+                disabled={!note.trim() || (pivotPath === "known" && !title.trim())}
+                onClick={() => {
+                  const ver = nextLabel(s.versions.length, mode === "pivot", head.label);
+                  const name = sugg ? `${PATTERNS[sugg.alternative].short} pattern` : title.trim() || (mode === "pivot" ? "Pivot" : "Iteration");
+                  s.commitVersion(`${ver} · ${name}`, note.trim(), focus);
+                  close();
+                }}
+              >
+                {mode === "pivot" ? "Create fork" : "Commit"}
+              </Button>
+            </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
 

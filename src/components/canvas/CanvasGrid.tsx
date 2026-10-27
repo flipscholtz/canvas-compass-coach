@@ -51,6 +51,7 @@ export function CanvasGrid({ canvas, prev, readOnly }: { canvas: Canvas; prev?: 
 
 function Block({ id, items, prev, readOnly }: { id: BlockId; items: CanvasItem[]; prev?: CanvasItem[] | undefined; readOnly: boolean }) {
   const addItems = useCanvasStore((s) => s.addItems);
+  const focus = useCanvasStore((s) => !readOnly && !s.viewingId && !!s.versions.at(-1)?.focusBlocks?.includes(id));
   const { suggest, busy } = useSuggest();
   const [adding, setAdding] = useState("");
   const [open, setOpen] = useState(false);
@@ -64,6 +65,7 @@ function Block({ id, items, prev, readOnly }: { id: BlockId; items: CanvasItem[]
       className={cn(
         "group flex flex-col rounded-lg border bg-card p-3 shadow-card",
         isVP && "border-2 border-signal",
+        focus && "ring-2 ring-signal ring-offset-2 ring-offset-background",
         LAYOUT[id],
       )}
     >
@@ -73,6 +75,7 @@ function Block({ id, items, prev, readOnly }: { id: BlockId; items: CanvasItem[]
             {BLOCKS[id].title}
           </h3>
           <p className="text-[11px] text-muted-foreground">{BLOCKS[id].hint}</p>
+          {focus && <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-signal">Pivot: rewrite this block</p>}
         </div>
         {!readOnly && (
           <div className="flex shrink-0">

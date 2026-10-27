@@ -42,7 +42,7 @@ interface State {
   pushMessage: (m: Omit<ChatMessage, "id">) => void;
   checkCoherence: () => boolean;
   setProgress: (step: number, stage: Stage) => void;
-  commitVersion: (label: string, note: string) => void;
+  commitVersion: (label: string, note: string, focusBlocks?: BlockId[]) => void;
   setViewing: (id: string | null) => void;
   addCard: (c: TestCard) => void;
   removeCard: (id: string) => void;
@@ -181,7 +181,7 @@ export const useCanvasStore = create<State>()(
         return added;
       },
       setProgress: (step, stage) => set((s) => ({ step, stage: Math.max(s.stage, stage) as Stage })),
-      commitVersion: (label, note) =>
+      commitVersion: (label, note, focusBlocks) =>
         set((s) => {
           const head = s.versions[s.versions.length - 1]!;
           const copy: CanvasVersion = {
@@ -190,6 +190,7 @@ export const useCanvasStore = create<State>()(
             note,
             createdAt: new Date().toISOString(),
             canvas: JSON.parse(JSON.stringify(head.canvas)),
+            ...(focusBlocks?.length ? { focusBlocks } : {}),
           };
           const versions = [...s.versions, copy];
           const isPivot = /\.0 ·/.test(label);
@@ -197,7 +198,7 @@ export const useCanvasStore = create<State>()(
             versions,
             viewingId: null,
             log: withLog({ ...s, versions }, [
-              { kind: "decision", category: "version", summary: `${isPivot ? "Pivoted" : "Committed iteration"}: ${label}`, rationale: note },
+              { kind: "decision", category: "version", summary: `${isPivot ? "Pivoted" : "Committed iteration"}: ${label}`, rationale: focusBlocks?.length ? `${note} — start by rewriting: ${focusBlocks.map((b) => BLOCKS[b].title).join(", ")}` : note },
             ]),
           };
         }),
