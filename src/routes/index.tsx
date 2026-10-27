@@ -17,6 +17,7 @@ import { TestCards } from "@/components/canvas/TestCards";
 import { LogPanel } from "@/components/canvas/LogPanel";
 import { JourneyPanel } from "@/components/canvas/JourneyPanel";
 import { ScenarioMenu } from "@/components/canvas/ScenarioMenu";
+import { WelcomeWizard, welcomeSeen, TourIcon } from "@/components/canvas/WelcomeWizard";
 import { SuggestAllButton } from "@/components/canvas/SuggestAllButton";
 
 export const Route = createFileRoute("/")({
@@ -48,6 +49,8 @@ function App() {
   const [rightView, setRightView] = useState<"canvas" | "journey" | "log">("canvas");
   const [coachOpen, setCoachOpen] = useState(true);
   const [settings, setSettings] = useState(false);
+  const [tour, setTour] = useState(false);
+  useEffect(() => { if (!welcomeSeen()) setTour(true); }, []);
   const [key, setKey] = useState(s.apiKey);
   const [model, setModel] = useState(s.model);
 
@@ -59,6 +62,7 @@ function App() {
   return (
     <div className="flex h-dvh flex-col">
       <Toaster position="top-center" />
+      <WelcomeWizard open={tour} onOpenChange={setTour} />
       <header className="flex flex-wrap items-center justify-between gap-3 border-b bg-paper px-4 py-3 lg:px-6">
         <div className="flex items-center gap-3">
           <div className="grid size-9 place-items-center rounded-lg bg-ink text-ink-foreground">
@@ -74,6 +78,7 @@ function App() {
           </div>
         </div>
         <div className="flex gap-1.5">
+          <Button variant="ghost" size="sm" onClick={() => setTour(true)}><TourIcon className="size-4" /> Tour</Button>
           <ScenarioMenu />
           <Button
             size="icon"
