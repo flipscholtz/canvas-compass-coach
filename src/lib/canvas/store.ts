@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { STEPS } from "./coach";
-import { demoCards, demoLog, demoMessages, demoVersions } from "./demo";
+import { demoCards, demoLog, demoMessages, demoVersions, tutoringScenario, veriTraceScenario } from "./demo";
 import { extractAssumptions } from "./assumptions";
 import { analyzeCoherence, coherenceKey, formatCoherenceFinding } from "./coherence";
 import {

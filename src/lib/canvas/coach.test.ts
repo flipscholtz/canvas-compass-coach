@@ -119,3 +119,17 @@ describe("changelog & decision log", () => {
     expect(useCanvasStore.getState().log).toHaveLength(0);
   });
 });
+
+describe("scenarios", () => {
+  it("seeds two demo scenarios and round-trips save/load", () => {
+    const st = useCanvasStore.getState();
+    expect(st.scenarios.map((x) => x.name)).toEqual(["VeriTrace · Industrial Carbon ESG SaaS", "LearnLoop · Matric Exam-Prep Tutoring"]);
+    st.newScenario("Mine");
+    useCanvasStore.getState().saveScenario("Mine");
+    const id = useCanvasStore.getState().scenarioId!;
+    useCanvasStore.getState().loadScenario(useCanvasStore.getState().scenarios.find((x) => x.name.startsWith("LearnLoop"))!.id);
+    expect(useCanvasStore.getState().versions).toHaveLength(2);
+    useCanvasStore.getState().loadScenario(id);
+    expect(useCanvasStore.getState().scenarioName).toBe("Mine");
+  });
+});

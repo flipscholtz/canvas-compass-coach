@@ -8,6 +8,15 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-27",
+    title: "Saved scenarios",
+    changes: [
+      "Scenarios button lists saved scenarios to load or delete; Save stores the current one by name in this browser.",
+      "Comes with two demos: VeriTrace (carbon ESG SaaS) and LearnLoop (matric exam-prep tutoring).",
+      "New Scenario replaces Reset and starts a blank, named canvas.",
+    ],
+  },
+  {
+    date: "2026-10-27",
     title: "Printable BMC report",
     changes: ["New PDF report button on the Journey tab: a cover with the journey, one full canvas per version, and insights with next-direction questions, ready to print or save as PDF."],
   },
