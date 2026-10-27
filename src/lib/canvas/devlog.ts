@@ -8,6 +8,15 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-27",
+    title: "Experiment designer: interview call sheet",
+    changes: [
+      "Pick untested assumptions from the current canvas and print an interview call sheet.",
+      "The sheet includes the ideal persona, a screener, opening script, questions per assumption, signals to listen for, and logistics.",
+      "Open it from the Journey tab: Interview call sheet.",
+    ],
+  },
+  {
+    date: "2026-10-27",
     title: "Saved scenarios",
     changes: [
       "Scenarios button lists saved scenarios to load or delete; Save stores the current one by name in this browser.",

@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CallsheetRouteImport } from './routes/callsheet'
 import { Route as ReportRouteImport } from './routes/report'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CallsheetRoute = CallsheetRouteImport.update({
+  id: '/callsheet',
+  path: '/callsheet',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportRoute = ReportRouteImport.update({
@@ -25,27 +31,31 @@ const ReportRoute = ReportRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/callsheet': typeof CallsheetRoute
   '/report': typeof ReportRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/callsheet': typeof CallsheetRoute
   '/report': typeof ReportRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/callsheet': typeof CallsheetRoute
   '/report': typeof ReportRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/report'
+  fullPaths: '/' | '/callsheet' | '/report'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/report'
-  id: '__root__' | '/' | '/report'
+  to: '/' | '/callsheet' | '/report'
+  id: '__root__' | '/' | '/callsheet' | '/report'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CallsheetRoute: typeof CallsheetRoute
   ReportRoute: typeof ReportRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/callsheet': {
+      id: '/callsheet'
+      path: '/callsheet'
+      fullPath: '/callsheet'
+      preLoaderRoute: typeof CallsheetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/report': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CallsheetRoute: CallsheetRoute,
   ReportRoute: ReportRoute,
 }
 export const routeTree = rootRouteImport
