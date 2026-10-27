@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-27",
+    title: "Verdicts need evidence",
+    changes: ["Marking a sticky note Validated or Invalidated now asks which test and what result back it up.", "The evidence is saved on the note, written to the decision log and shown in coherence checks."],
+  },
+  {
+    date: "2026-10-27",
     title: "Coach and canvas polish",
     changes: [
       "The coach now opens with \"Who is this for, and what job or pain do they have?\" and asks \"How do you know?\" before any product talk.",

@@ -136,6 +136,9 @@ export const useCanvasStore = create<State>()(
         set((s) => {
           const item = s.versions[s.versions.length - 1]!.canvas[block].find((i) => i.id === id);
           if (!item) return {};
+          // A verdict (validated/invalidated) must carry evidence: which test and what result.
+          if (patch.status && patch.status !== "hypothesis" && !(patch.evidence?.test.trim() && patch.evidence.result.trim())) return {};
+          if (patch.status === "hypothesis") patch = { ...patch, evidence: undefined };
           const drafts: Draft[] = [];
           if (patch.text && patch.text !== item.text)
             drafts.push({ kind: "change", category: "edited", block, summary: `Reworded “${item.text}” → “${patch.text}” in ${BLOCKS[block].title}` });
@@ -143,7 +146,7 @@ export const useCanvasStore = create<State>()(
             drafts.push(
               patch.status === "hypothesis"
                 ? { kind: "change", category: "status", block, summary: `Reset “${item.text}” to untested` }
-                : { kind: "decision", category: "status", block, summary: `Marked “${item.text}” as ${STATUS_WORD[patch.status]}`, rationale: "Recorded from canvas status change — add evidence in a decision entry if needed." },
+                : { kind: "decision", category: "status", block, summary: `Marked “${item.text}” as ${STATUS_WORD[patch.status]}`, rationale: `Evidence — ${patch.evidence!.test}: ${patch.evidence!.result}` },
             );
           const versions = updateHead(s.versions, (v) => ({
             ...v,
