@@ -15,7 +15,7 @@ describe("Socratic coach rules", () => {
 
   it("adds specific segment answers as hypotheses and advances", () => {
     const r = coachTurn(emptyCanvas(), 2, "Operations managers at Dutch dental clinics with 5-20 staff");
-    expect(r.nextStep).toBe(2);
+    expect(r.nextStep).toBe(3);
     expect(r.additions[0]?.block).toBe("segments");
   });
 
