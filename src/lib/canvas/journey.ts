@@ -15,7 +15,7 @@ export interface Insight {
   kind: "pivot" | "learning" | "foundation" | "unstable" | "blindspot" | "untouched";
   title: string;
   detail: string;
-  block?: BlockId;
+  block?: BlockId | undefined;
 }
 
 export interface Journey {
