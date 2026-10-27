@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-27",
+    title: "Printable BMC report",
+    changes: ["New PDF report button on the Journey tab: a cover with the journey, one full canvas per version, and insights with next-direction questions, ready to print or save as PDF."],
+  },
+  {
+    date: "2026-10-27",
     title: "Business model journey view",
     changes: [
       "New Journey tab compares every canvas version: what was added or dropped, pivots, the blocks you changed most, and hypotheses dropped after being invalidated.",
