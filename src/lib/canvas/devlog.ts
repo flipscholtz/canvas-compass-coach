@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-27",
+    title: "Welcome tour",
+    changes: ["A short welcome tour opens the first time the app is opened, covering the coach, canvas, testing, versions, scenarios and log.", "Reopen it any time with the Tour button in the header."],
+  },
+  {
+    date: "2026-10-27",
     title: "Experiment designer: interview call sheet",
     changes: [
       "Pick untested assumptions from the current canvas and print an interview call sheet.",
