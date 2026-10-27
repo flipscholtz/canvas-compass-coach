@@ -45,6 +45,8 @@ export interface CanvasVersion {
   note: string;
   createdAt: string;
   canvas: Canvas;
+  /** Pivot forks: blocks the coach expects the founder to rewrite. */
+  focusBlocks?: BlockId[];
 }
 
 export interface TestCard {
