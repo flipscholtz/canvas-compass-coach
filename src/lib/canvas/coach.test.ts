@@ -9,7 +9,7 @@ describe("Socratic coach rules", () => {
 
   it("does not advance when the segment is vague", () => {
     const r = coachTurn(emptyCanvas(), 2, "Small businesses");
-    expect(r.nextStep).toBe(1);
+    expect(r.nextStep).toBe(2);
     expect(r.additions).toHaveLength(0);
   });
 
