@@ -18,7 +18,7 @@ export function AssumptionChip({ assumption }: { assumption: Assumption }) {
       >
         {assumption.lens}
       </span>
-      <span>We believe that {assumption.text}.</span>
+      <span>We believe that {assumption.text.replace(/^\s*we believe that\s+/i, "")}.</span>
     </div>
   );
 }

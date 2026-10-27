@@ -59,8 +59,14 @@ export async function llmTurn(opts: {
     flags: Array.isArray(parsed.flags) ? parsed.flags.map(String) : [],
     assumptions: (Array.isArray(parsed.assumptions) ? parsed.assumptions : [])
       .filter((a: Assumption) => ["desirability", "feasibility", "viability"].includes(a.lens) && a.text)
+      .map((a: Assumption) => ({ ...a, text: stripBelievePrefix(a.text) }))
       .slice(0, 2),
   };
+}
+
+/** The model is told to phrase assumptions as clauses completing "We believe that ..."; the UI adds that prefix itself, so strip any duplicate. */
+function stripBelievePrefix(text: string): string {
+  return text.replace(/^\s*we believe that\s+/i, "").trim();
 }
 
 export async function llmSuggest(opts: { apiKey: string; model: string; canvas: Canvas; blocks: BlockId[] }) {
