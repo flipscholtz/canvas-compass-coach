@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-27",
+    title: "Shared demo AI",
+    changes: ["The coach can use a shared AI key kept on the server, switched on or off for demos.", "Your own key in Settings still takes priority."],
+  },
+  {
+    date: "2026-10-27",
     title: "Fixed doubled assumption wording",
     changes: ["Assumptions no longer read \"We believe that we believe that …\" — the duplicate prefix is stripped wherever assumptions are shown or turned into Test Cards."],
   },

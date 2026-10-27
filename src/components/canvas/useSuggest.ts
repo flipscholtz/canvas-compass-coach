@@ -3,10 +3,12 @@ import { toast } from "sonner";
 import { useCanvasStore } from "@/lib/canvas/store";
 import { suggestAssumptions } from "@/lib/canvas/coach";
 import { llmSuggest } from "@/lib/canvas/llm";
+import { useServerAi } from "./useServerAi";
 import { BLOCK_ORDER, BLOCKS, type BlockId } from "@/lib/canvas/types";
 
 /** Adds synthetic, testable assumptions (yellow) to one or all blocks. */
 export function useSuggest() {
+  const serverAi = useServerAi();
   const [busy, setBusy] = useState<BlockId | "all" | null>(null);
 
   async function suggest(target: BlockId | "all") {
@@ -15,7 +17,7 @@ export function useSuggest() {
     const blocks = target === "all" ? BLOCK_ORDER : [target];
     setBusy(target);
     try {
-      const adds = s.apiKey
+      const adds = s.apiKey || serverAi
         ? await llmSuggest({ apiKey: s.apiKey, model: s.model, canvas, blocks })
         : blocks.flatMap((b) => suggestAssumptions(canvas, b).map((text) => ({ block: b, text })));
       if (!adds.length) {

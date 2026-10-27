@@ -10,6 +10,7 @@ import { coachTurn, STEPS } from "@/lib/canvas/coach";
 import { useRiskiest } from "./useRiskiest";
 import { AssumptionChip } from "./AssumptionChip";
 import { llmTurn } from "@/lib/canvas/llm";
+import { useServerAi } from "./useServerAi";
 
 const QUICK = [
   { label: "Identify My Riskiest Assumption", key: "risk" },
@@ -26,6 +27,8 @@ export function ChatPane() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const identifyRiskiest = useRiskiest();
   const head = s.versions.at(-1)?.canvas;
+  const serverAi = useServerAi();
+  const live = !!s.apiKey || serverAi;
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -38,7 +41,7 @@ export function ChatPane() {
     s.pushMessage({ role: "user", text: t });
     setBusy(true);
     try {
-      if (s.apiKey) {
+      if (live) {
         const history = [...useCanvasStore.getState().messages];
         const r = await llmTurn({ apiKey: s.apiKey, model: s.model, canvas: head, history });
         s.addItems(r.additions.map((a, i) => (i === 0 && r.assumptions.length ? { ...a, assumptions: r.assumptions } : a)));
@@ -69,7 +72,7 @@ export function ChatPane() {
       return;
     }
     if (!head) return;
-    if (s.apiKey && key !== "skip") {
+    if (live && key !== "skip") {
       const prompt = QUICK.find((q) => q.key === key)?.label;
       if (prompt) void send(prompt);
       return;
@@ -97,7 +100,7 @@ export function ChatPane() {
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-display text-lg font-semibold">Socratic Coach</h2>
           <span className="rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            {s.apiKey ? `Live · ${s.model}` : "Demo mode · offline"}
+            {s.apiKey ? `Live · ${s.model}` : serverAi ? "Live · shared demo AI" : "Demo mode · offline"}
           </span>
         </div>
         <ol className="flex gap-1">
