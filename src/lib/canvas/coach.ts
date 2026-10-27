@@ -13,7 +13,13 @@ export const STEPS: Step[] = [
     block: null,
     stage: 1,
     question:
-      "Let's start where founders usually skip ahead. In one sentence: what painful problem have you personally seen, and who was suffering from it?",
+      "Let's start with the customer. Who is this for, and what job or pain do they have?",
+  },
+  {
+    block: null,
+    stage: 1,
+    question:
+      "How do you know? When did you last see one of them struggle with this, and what did they do about it — or pay — to cope? Talk about what happened, not what you plan to build.",
   },
   {
     block: "segments",
@@ -174,6 +180,16 @@ export interface CoachResult {
   stage: Stage;
 }
 
+const PRICE = /(?:\b(?:R|ZAR|USD|EUR|GBP)\s?\d[\d\s,.]*k?|[$€£]\s?\d[\d,.]*k?|\d[\d,.]*\s?(?:rand|dollars|euros))/i;
+
+/** Sentences in an answer that state a price or amount, kept verbatim for Revenue Streams. */
+export function priceFacts(answer: string): string[] {
+  return answer
+    .split(/(?<=[.!?;])\s+|\n+/)
+    .map((x) => x.trim().replace(/[.;]+$/, ""))
+    .filter((x) => x && PRICE.test(x));
+}
+
 /** Deterministic, rule-based Socratic turn for demo/offline mode. */
 export function coachTurn(canvas: Canvas, stepIndex: number, answer: string): CoachResult {
   const step = STEPS[Math.min(stepIndex, STEPS.length - 1)]!;
@@ -193,6 +209,10 @@ export function coachTurn(canvas: Canvas, stepIndex: number, answer: string): Co
     };
   }
   const additions = step.block ? extractItems(answer).map((text) => ({ block: step.block!, text, assumptions: extractAssumptions(step.block!, text) })) : [];
+  // Never drop concrete prices the founder volunteers off-step (e.g. "R2000 a month").
+  if (step.block !== "revenue") {
+    for (const text of priceFacts(answer)) additions.push({ block: "revenue", text, assumptions: extractAssumptions("revenue", text) });
+  }
   const projected: Canvas = { ...canvas };
   for (const a of additions) {
     projected[a.block] = [...projected[a.block], { id: "tmp", text: a.text, status: "hypothesis" }];

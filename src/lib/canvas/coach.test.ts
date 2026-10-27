@@ -8,13 +8,13 @@ describe("Socratic coach rules", () => {
   });
 
   it("does not advance when the segment is vague", () => {
-    const r = coachTurn(emptyCanvas(), 1, "Small businesses");
+    const r = coachTurn(emptyCanvas(), 2, "Small businesses");
     expect(r.nextStep).toBe(1);
     expect(r.additions).toHaveLength(0);
   });
 
   it("adds specific segment answers as hypotheses and advances", () => {
-    const r = coachTurn(emptyCanvas(), 1, "Operations managers at Dutch dental clinics with 5-20 staff");
+    const r = coachTurn(emptyCanvas(), 2, "Operations managers at Dutch dental clinics with 5-20 staff");
     expect(r.nextStep).toBe(2);
     expect(r.additions[0]?.block).toBe("segments");
   });
@@ -66,7 +66,7 @@ describe("assumption extraction & riskiest assumption", () => {
     expect(extractAssumptions("revenue", "Annual licence")[0]!.lens).toBe("viability");
   });
   it("coach turn surfaces assumptions from the founder's answer", () => {
-    const r = coachTurn(emptyCanvas(), 2, "Cut audit preparation time from months to days");
+    const r = coachTurn(emptyCanvas(), 3, "Cut audit preparation time from months to days");
     expect(r.assumptions.length).toBeGreaterThan(0);
   });
   it("picks an untested customer-segment assumption over a cost one and skips validated items", () => {
@@ -146,5 +146,30 @@ describe("scenarios", () => {
     expect(useCanvasStore.getState().versions).toHaveLength(2);
     useCanvasStore.getState().loadScenario(id);
     expect(useCanvasStore.getState().scenarioName).toBe("Mine");
+  });
+});
+
+import { priceFacts } from "./coach";
+describe("tier-1 fixes", () => {
+  it("captures an off-step price into Revenue Streams", () => {
+    expect(priceFacts("Parents would pay R2000 a month. They hate traffic.")).toEqual(["Parents would pay R2000 a month"]);
+    const r = coachTurn(emptyCanvas(), 0, "Parents of matric learners; they'd pay R2000 a month");
+    expect(r.additions.some((a) => a.block === "revenue" && a.text.includes("R2000"))).toBe(true);
+  });
+  it("opens with customer segment, then asks for evidence before features", () => {
+    expect(STEPS[0]!.question).toContain("Who is this for");
+    expect(STEPS[1]!.question).toContain("How do you know");
+  });
+  it("stage only moves forward", () => {
+    useCanvasStore.getState().newScenario();
+    useCanvasStore.getState().setProgress(5, 4);
+    useCanvasStore.getState().setProgress(0, 1);
+    expect(useCanvasStore.getState().stage).toBe(4);
+  });
+  it("restores deleted demo scenarios", () => {
+    const st = useCanvasStore.getState();
+    st.scenarios.forEach((x) => st.deleteScenario(x.id));
+    useCanvasStore.getState().restoreDemos();
+    expect(useCanvasStore.getState().scenarios.filter((x) => x.demo).length).toBe(2);
   });
 });
