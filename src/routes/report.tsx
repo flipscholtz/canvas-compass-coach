@@ -36,9 +36,9 @@ function ReportPage() {
 
 function MiniCanvas({ canvas }: { canvas: Canvas }) {
   return (
-    <div className="grid gap-1 text-[9px] leading-snug" style={{ gridTemplateColumns: "repeat(10, 1fr)", gridTemplateRows: "auto auto auto" }}>
+    <div className="grid gap-1.5 text-[11px] leading-snug" style={{ gridTemplateColumns: "repeat(10, 1fr)", gridTemplateRows: "auto auto auto" }}>
       {(Object.keys(AREA) as BlockId[]).map((b) => (
-        <div key={b} style={{ gridArea: AREA[b] }} className="min-h-20 rounded border bg-card p-1.5">
+        <div key={b} style={{ gridArea: AREA[b] }} className="min-h-44 rounded border bg-card p-2">
           <div className="mb-1 font-semibold uppercase tracking-wide text-muted-foreground">{BLOCKS[b].title}</div>
           <ul className="space-y-0.5">
             {(canvas[b] ?? []).map((it) => (
@@ -57,8 +57,8 @@ function Report() {
   const today = new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
 
   return (
-    <div className="report min-h-screen bg-muted/40 py-8 print:bg-background print:py-0">
-      <style>{`@page { size: A4 landscape; margin: 12mm; } @media print { .report * { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .page { break-after: page; box-shadow: none !important; } .avoid { break-inside: avoid; } }`}</style>
+    <div className="report min-h-screen bg-muted/40 py-8 print:bg-transparent print:py-0">
+      <style>{`@page { size: A4 landscape; margin: 12mm; } @media print { .report * { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .page { break-after: page; box-shadow: none !important; } .avoid { break-inside: avoid; } html, body { background: var(--paper) !important; } }`}</style>
       <div className="mx-auto mb-4 flex max-w-5xl justify-between px-4 print:hidden">
         <Button variant="outline" size="sm" asChild><Link to="/"><ArrowLeft /> Back to app</Link></Button>
         <Button size="sm" onClick={() => window.print()} className="bg-signal text-signal-foreground hover:bg-signal/90"><Printer /> Print / Save as PDF</Button>
