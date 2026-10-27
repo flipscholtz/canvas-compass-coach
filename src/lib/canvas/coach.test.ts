@@ -149,7 +149,7 @@ describe("scenarios", () => {
   });
 });
 
-import { priceFacts } from "./coach";
+import { priceFacts, STEPS } from "./coach";
 describe("tier-1 fixes", () => {
   it("captures an off-step price into Revenue Streams", () => {
     expect(priceFacts("Parents would pay R2000 a month. They hate traffic.")).toEqual(["Parents would pay R2000 a month"]);
