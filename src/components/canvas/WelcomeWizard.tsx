@@ -1,50 +1,126 @@
-import { useEffect, useState } from "react";
-import { FlaskConical, GitBranch, Layers, LayoutGrid, Lightbulb, MessageCircleQuestion, Route, ScrollText } from "lucide-react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { Route, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 const KEY = "canvasstack-welcome-seen";
 
-const STEPS = [
-  { icon: Layers, title: "Welcome to CanvasStack", body: "A Socratic co-pilot for your Business Model Canvas. It asks questions rather than giving answers, so you see what you're taking for granted. Everything stays in this browser; no sign-up needed." },
-  { icon: MessageCircleQuestion, title: "Talk to the coach", body: "Answer the coach's questions on the left. It turns your answers into sticky notes, pushes back on vague answers, and highlights the underlying assumptions (desirability, feasibility, viability)." },
-  { icon: LayoutGrid, title: "Your canvas", body: "Every note starts as an Untested hypothesis. Click a note to see its assumptions, edit it, or mark it Validated / Invalidated. Use the lightbulb on a block for suggested assumptions, and Check coherence to spot gaps and tensions." },
-  { icon: FlaskConical, title: "Test what matters", body: "\"Identify My Riskiest Assumption\" picks the assumption most likely to sink the venture and drafts a Test Card. The Interview call sheet (Journey tab) prints a persona, screener and questions for customer interviews." },
-  { icon: GitBranch, title: "Versions & journey", body: "Commit or fork canvas versions as you learn. The Journey tab shows pivots, lessons and next questions, and exports a PDF report of every version." },
-  { icon: ScrollText, title: "Scenarios & log", body: "Save and load scenarios (two demos included: VeriTrace and LearnLoop). The Changelog & Decisions tab records every change and the decisions behind it." },
-  { icon: Lightbulb, title: "Ready?", body: "Start with a blank canvas and answer the coach, or open Scenarios to explore a demo. You can reopen this tour any time with the Tour button in the header." },
+/** Live tour: each step points at an element marked with data-tour="…"; steps without a visible target are centred. */
+const STEPS: { target?: string; title: string; body: string }[] = [
+  { title: "Welcome to CanvasStack", body: "A Socratic co-pilot for your Business Model Canvas. It asks questions rather than giving answers, so you see what you're taking for granted. Everything stays in this browser, with no sign-up needed. Let's take a quick look around." },
+  { target: "coach", title: "Talk to the coach", body: "Answer the coach's questions here. It turns your answers into sticky notes, pushes back on vague answers, and highlights the underlying assumptions (desirability, feasibility, viability)." },
+  { target: "canvas", title: "Your canvas", body: "Every note starts as an Untested hypothesis. Click a note to see its assumptions, edit it, or mark it Validated or Invalidated. The lightbulb on each block suggests assumptions to test." },
+  { target: "tests", title: "Test what matters", body: "\"Extract & Test Riskiest Assumption\" picks the assumption most likely to sink the venture and drafts a Strategyzer Test Card here." },
+  { target: "stack", title: "Versions", body: "Commit a snapshot or fork a pivot as you learn. Each version stays in the stack so you can compare them." },
+  { target: "tabs", title: "Journey & decisions", body: "The Journey tab shows pivots, lessons and next questions, with a PDF report and interview call sheets. Changelog & Decisions records every change and why." },
+  { target: "scenarios", title: "Scenarios", body: "Save and load scenarios, or start a new one. Two demos are included: VeriTrace and LearnLoop." },
+  { target: "tour", title: "Ready?", body: "Start answering the coach, or open a demo scenario. You can replay this tour any time from here." },
 ];
+
+type Rect = { top: number; left: number; width: number; height: number };
+const CARD_W = 320;
+const PAD = 8;
+
+function findTarget(name?: string) {
+  if (!name) return null;
+  const el = document.querySelector<HTMLElement>(`[data-tour="${name}"]`);
+  if (!el) return null;
+  const r = el.getBoundingClientRect();
+  return r.width && r.height ? el : null;
+}
+
+function cardPos(r: Rect | null, cardH: number) {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  if (!r || vw < 640) return { top: Math.max(16, vh / 2 - cardH / 2), left: Math.max(16, vw / 2 - CARD_W / 2) };
+  const clampTop = (t: number) => Math.min(Math.max(16, t), vh - cardH - 16);
+  const clampLeft = (l: number) => Math.min(Math.max(16, l), vw - CARD_W - 16);
+  if (r.top + r.height + cardH + 24 < vh) return { top: r.top + r.height + 16, left: clampLeft(r.left) };
+  if (r.left + r.width + CARD_W + 24 < vw) return { top: clampTop(r.top), left: r.left + r.width + 16 };
+  if (r.left - CARD_W - 24 > 0) return { top: clampTop(r.top), left: r.left - CARD_W - 16 };
+  if (r.top - cardH - 24 > 0) return { top: r.top - cardH - 16, left: clampLeft(r.left) };
+  return { top: clampTop(r.top + 24), left: clampLeft(r.left + 24) };
+}
 
 export function WelcomeWizard({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const [i, setI] = useState(0);
+  const [rect, setRect] = useState<Rect | null>(null);
+  const [cardH, setCardH] = useState(220);
   useEffect(() => { if (open) setI(0); }, [open]);
-  const close = () => { localStorage.setItem(KEY, "1"); onOpenChange(false); };
   const st = STEPS[i]!;
   const last = i === STEPS.length - 1;
-  const Icon = st.icon;
+  const close = useCallback(() => { localStorage.setItem(KEY, "1"); onOpenChange(false); }, [onOpenChange]);
+
+  const measure = useCallback(() => {
+    const el = findTarget(st.target);
+    if (!el) return setRect(null);
+    const r = el.getBoundingClientRect();
+    const vh = window.innerHeight;
+    // Clip very tall targets (e.g. the coach pane) to the visible viewport.
+    const top = Math.max(r.top, 8), bottom = Math.min(r.bottom, vh - 8);
+    setRect({ top: top - PAD, left: r.left - PAD, width: r.width + PAD * 2, height: bottom - top + PAD * 2 });
+  }, [st.target]);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const el = findTarget(st.target);
+    el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    measure();
+    const t = setTimeout(measure, 350);
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => { clearTimeout(t); window.removeEventListener("resize", measure); window.removeEventListener("scroll", measure, true); };
+  }, [open, i, st.target, measure]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowRight") setI((k) => Math.min(k + 1, STEPS.length - 1));
+      if (e.key === "ArrowLeft") setI((k) => Math.max(k - 1, 0));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, close]);
+
+  if (!open) return null;
+  const pos = cardPos(rect, cardH);
+
   return (
-    <Dialog open={open} onOpenChange={(o) => (o ? onOpenChange(true) : close())}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="mb-2 grid size-11 place-items-center rounded-lg bg-ink text-ink-foreground"><Icon className="size-5" /></div>
-          <DialogTitle className="font-display text-xl">{st.title}</DialogTitle>
-          <DialogDescription className="text-sm leading-relaxed">{st.body}</DialogDescription>
-        </DialogHeader>
-        <div className="flex justify-center gap-1.5 py-1">
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={st.title}>
+      {rect ? (
+        <div
+          className="pointer-events-none absolute rounded-lg ring-2 ring-signal transition-all duration-300"
+          style={{ ...rect, boxShadow: "0 0 0 9999px color-mix(in oklab, var(--foreground) 55%, transparent)" }}
+        />
+      ) : (
+        <div className="absolute inset-0" style={{ background: "color-mix(in oklab, var(--foreground) 55%, transparent)" }} />
+      )}
+      <div className="absolute inset-0" onClick={(e) => e.stopPropagation()} />
+      <div
+        ref={(n) => { if (n && Math.abs(n.offsetHeight - cardH) > 2) setCardH(n.offsetHeight); }}
+        className="absolute rounded-lg border bg-card p-4 shadow-xl transition-all duration-300"
+        style={{ top: pos.top, left: pos.left, width: CARD_W }}
+      >
+        <div className="mb-1 flex items-start justify-between gap-2">
+          <div className="font-mono text-[10px] uppercase tracking-widest text-signal">Step {i + 1} of {STEPS.length}</div>
+          <button aria-label="Close tour" onClick={close} className="text-muted-foreground hover:text-foreground"><X className="size-4" /></button>
+        </div>
+        <h2 className="font-display text-lg font-semibold">{st.title}</h2>
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{st.body}</p>
+        <div className="mt-3 flex gap-1.5">
           {STEPS.map((_, k) => (
             <button key={k} aria-label={`Step ${k + 1}`} onClick={() => setI(k)} className={cn("h-1.5 rounded-full transition-all", k === i ? "w-6 bg-signal" : "w-1.5 bg-muted-foreground/30")} />
           ))}
         </div>
-        <DialogFooter className="flex-row justify-between gap-2 sm:justify-between">
-          <Button variant="ghost" onClick={close}>Skip</Button>
+        <div className="mt-3 flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={close}>Skip</Button>
           <div className="flex gap-2">
-            {i > 0 && <Button variant="outline" onClick={() => setI(i - 1)}>Back</Button>}
-            <Button onClick={() => (last ? close() : setI(i + 1))}>{last ? "Get started" : "Next"}</Button>
+            {i > 0 && <Button variant="outline" size="sm" onClick={() => setI(i - 1)}>Back</Button>}
+            <Button size="sm" onClick={() => (last ? close() : setI(i + 1))}>{last ? "Get started" : "Next"}</Button>
           </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </div>
   );
 }
 

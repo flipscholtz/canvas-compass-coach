@@ -51,6 +51,7 @@ function App() {
   const [settings, setSettings] = useState(false);
   const [tour, setTour] = useState(false);
   useEffect(() => { if (!welcomeSeen()) setTour(true); }, []);
+  useEffect(() => { if (tour) { setRightView("canvas"); setCoachOpen(true); } }, [tour]);
   const [key, setKey] = useState(s.apiKey);
   const [model, setModel] = useState(s.model);
 
@@ -78,8 +79,8 @@ function App() {
           </div>
         </div>
         <div className="flex gap-1.5">
-          <Button variant="ghost" size="sm" onClick={() => setTour(true)}><TourIcon className="size-4" /> Tour</Button>
-          <ScenarioMenu />
+          <Button data-tour="tour" variant="ghost" size="sm" onClick={() => { setRightView("canvas"); setCoachOpen(true); setTour(true); }}><TourIcon className="size-4" /> Tour</Button>
+          <div data-tour="scenarios" className="flex flex-wrap items-center gap-2"><ScenarioMenu /></div>
           <Button
             size="icon"
             variant="outline"
@@ -117,12 +118,12 @@ function App() {
       </div>
 
       <main className={cn("grid min-h-0 flex-1", coachOpen && "lg:grid-cols-[minmax(0,42fr)_minmax(0,58fr)]")}>
-        <div className={cn("min-h-0 border-r", tab !== "chat" && "hidden lg:block", !coachOpen && "lg:hidden")}>
+        <div data-tour="coach" className={cn("min-h-0 border-r", tab !== "chat" && "hidden lg:block", !coachOpen && "lg:hidden")}>
           <ChatPane />
         </div>
         <div className={cn("min-h-0 overflow-y-auto grid-paper", tab !== "right" && "hidden lg:block")}>
           <div className="space-y-3 p-4 lg:p-6">
-            <div className="hidden gap-1 border-b lg:flex">
+            <div data-tour="tabs" className="hidden gap-1 border-b lg:flex">
               {(["canvas", "journey", "log"] as const).map((v) => (
                 <button
                   key={v}
@@ -145,7 +146,7 @@ function App() {
               <LogPanel />
             ) : (
             <>
-            <StackBar />
+            <div data-tour="stack"><StackBar /></div>
             {readOnly && (
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-accent px-3 py-2 text-xs text-accent-foreground">
                 <span className="flex items-center gap-2">
@@ -157,7 +158,7 @@ function App() {
                 </button>
               </div>
             )}
-            <CanvasGrid canvas={viewing.canvas} prev={prev} readOnly={readOnly} />
+            <div data-tour="canvas"><CanvasGrid canvas={viewing.canvas} prev={prev} readOnly={readOnly} /></div>
             <div className="flex flex-wrap items-center justify-between gap-3 px-1">
             <div className="flex flex-wrap gap-4 text-[11px] text-muted-foreground">
               <span><span className="mr-1 inline-block size-2 rounded-full bg-hypo" />Untested hypothesis</span>
@@ -166,7 +167,7 @@ function App() {
             </div>
             {!readOnly && <SuggestAllButton />}
             </div>
-            <TestCards />
+            <div data-tour="tests"><TestCards /></div>
             </>
             )}
           </div>
