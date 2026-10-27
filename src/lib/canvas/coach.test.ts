@@ -117,7 +117,7 @@ describe("changelog & decision log", () => {
     st.setAuthor("Ana");
     st.addItems([{ block: "segments", text: "Vet clinic owners" }]);
     const item = useCanvasStore.getState().versions[0]!.canvas.segments[0]!;
-    useCanvasStore.getState().updateItem("segments", item.id, { status: "validated" });
+    useCanvasStore.getState().updateItem("segments", item.id, { status: "validated", evidence: { test: "Interviews", result: "8 of 10 confirmed", at: "x" } });
     useCanvasStore.getState().commitVersion("v2.0 · Vet pivot", "Dentists had no budget");
     const log = useCanvasStore.getState().log;
     expect(log.map((e) => e.category)).toEqual(["version", "status", "added"]);
