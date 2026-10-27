@@ -15,6 +15,7 @@ import { CanvasGrid } from "@/components/canvas/CanvasGrid";
 import { StackBar } from "@/components/canvas/StackBar";
 import { TestCards } from "@/components/canvas/TestCards";
 import { LogPanel } from "@/components/canvas/LogPanel";
+import { JourneyPanel } from "@/components/canvas/JourneyPanel";
 import { SuggestAllButton } from "@/components/canvas/SuggestAllButton";
 
 export const Route = createFileRoute("/")({
@@ -43,7 +44,7 @@ function Index() {
 function App() {
   const s = useCanvasStore();
   const [tab, setTab] = useState<"chat" | "right">("chat");
-  const [rightView, setRightView] = useState<"canvas" | "log">("canvas");
+  const [rightView, setRightView] = useState<"canvas" | "journey" | "log">("canvas");
   const [coachOpen, setCoachOpen] = useState(true);
   const [settings, setSettings] = useState(false);
   const [key, setKey] = useState(s.apiKey);
@@ -101,13 +102,14 @@ function App() {
             if (v === "chat") setTab("chat");
             else {
               setTab("right");
-              setRightView(v as "canvas" | "log");
+              setRightView(v as "canvas" | "journey" | "log");
             }
           }}
         >
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="chat">Coach</TabsTrigger>
             <TabsTrigger value="canvas">Canvas</TabsTrigger>
+            <TabsTrigger value="journey">Journey</TabsTrigger>
             <TabsTrigger value="log">Log</TabsTrigger>
           </TabsList>
         </Tabs>
@@ -120,7 +122,7 @@ function App() {
         <div className={cn("min-h-0 overflow-y-auto grid-paper", tab !== "right" && "hidden lg:block")}>
           <div className="space-y-3 p-4 lg:p-6">
             <div className="hidden gap-1 border-b lg:flex">
-              {(["canvas", "log"] as const).map((v) => (
+              {(["canvas", "journey", "log"] as const).map((v) => (
                 <button
                   key={v}
                   onClick={() => setRightView(v)}
@@ -129,14 +131,16 @@ function App() {
                     rightView === v ? "border-signal text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  {v === "canvas" ? "Canvas" : "Changelog & Decisions"}
+                  {v === "canvas" ? "Canvas" : v === "journey" ? "Journey" : "Changelog & Decisions"}
                   {v === "log" && s.log.length > 0 && (
                     <span className="ml-1.5 rounded-full bg-muted px-1.5 font-mono text-[10px]">{s.log.length}</span>
                   )}
                 </button>
               ))}
             </div>
-            {rightView === "log" ? (
+            {rightView === "journey" ? (
+              <JourneyPanel />
+            ) : rightView === "log" ? (
               <LogPanel />
             ) : (
             <>

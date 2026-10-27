@@ -8,6 +8,14 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-27",
+    title: "Business model journey view",
+    changes: [
+      "New Journey tab compares every canvas version: what was added or dropped, pivots, the blocks you changed most, and hypotheses dropped after being invalidated.",
+      "Highlights validated foundations, assumptions carried untested since the first version, and unexplored blocks, then asks questions to guide your next direction.",
+    ],
+  },
+  {
+    date: "2026-10-27",
     title: "Collapsible coach panel",
     changes: [
       "New toggle button in the header collapses the Socratic Coach so the canvas fills the whole screen; click again to bring it back.",
