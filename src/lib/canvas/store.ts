@@ -49,7 +49,27 @@ interface State {
   setSettings: (apiKey: string, model: string) => void;
   loadDemo: () => void;
   reset: () => void;
+  scenarioId: string | null;
+  scenarios: SavedScenario[];
+  newScenario: (name?: string) => void;
+  saveScenario: (name: string) => void;
+  loadScenario: (id: string) => void;
+  deleteScenario: (id: string) => void;
 }
+
+/** A named, saved copy of a whole scenario (canvas stack, chat, cards, log). */
+export interface SavedScenario {
+  id: string;
+  name: string;
+  savedAt: string;
+  data: Pick<State, "versions" | "messages" | "step" | "stage" | "cards" | "scenarioName" | "log">;
+}
+
+const seedScenarios = (): SavedScenario[] =>
+  [veriTraceScenario(), tutoringScenario()].map((d) => ({
+    id: uid(), name: d.scenarioName, savedAt: d.versions[d.versions.length - 1]!.createdAt,
+    data: { ...d, step: STEPS.length - 1, stage: 5 as Stage },
+  }));
 
 const freshSession = () => ({
   versions: [
@@ -204,7 +224,25 @@ export const useCanvasStore = create<State>()(
           scenarioName: "VeriTrace · Industrial Carbon ESG SaaS",
           log: demoLog(),
         }),
-      reset: () => set(freshSession()),
+      reset: () => set({ ...freshSession(), scenarioId: null }),
+      scenarioId: null,
+      scenarios: seedScenarios(),
+      newScenario: (name) => set({ ...freshSession(), scenarioId: null, ...(name?.trim() ? { scenarioName: name.trim() } : {}) }),
+      saveScenario: (name) =>
+        set((s) => {
+          const nm = name.trim() || s.scenarioName;
+          const data = { versions: s.versions, messages: s.messages, step: s.step, stage: s.stage, cards: s.cards, scenarioName: nm, log: s.log };
+          const id = s.scenarioId && s.scenarios.some((x) => x.id === s.scenarioId) ? s.scenarioId : uid();
+          const entry = { id, name: nm, savedAt: new Date().toISOString(), data };
+          return { scenarioName: nm, scenarioId: id, scenarios: [entry, ...s.scenarios.filter((x) => x.id !== id)] };
+        }),
+      loadScenario: (id) =>
+        set((s) => {
+          const sc = s.scenarios.find((x) => x.id === id);
+          return sc ? { ...structuredClone(sc.data), viewingId: null, scenarioId: id } : {};
+        }),
+      deleteScenario: (id) =>
+        set((s) => ({ scenarios: s.scenarios.filter((x) => x.id !== id), scenarioId: s.scenarioId === id ? null : s.scenarioId })),
     }),
     {
       name: "canvasstack-session",
