@@ -3,14 +3,14 @@ export interface DevLogEntry {
   date: string; // YYYY-MM-DD
   title: string;
   changes: string[];
+}
+
+export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-27",
     title: "Shared demo AI",
     changes: ["The coach can use a shared AI key kept on the server, switched on or off for demos.", "Your own key in Settings still takes priority."],
   },
-}
-
-export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-27",
     title: "Fixed doubled assumption wording",
