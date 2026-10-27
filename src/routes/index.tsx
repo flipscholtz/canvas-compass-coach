@@ -80,7 +80,7 @@ function App() {
         </div>
         <div className="flex gap-1.5">
           <Button data-tour="tour" variant="ghost" size="sm" onClick={() => { setRightView("canvas"); setCoachOpen(true); setTour(true); }}><TourIcon className="size-4" /> Tour</Button>
-          <div data-tour="scenarios" className="contents"><ScenarioMenu /></div>
+          <div data-tour="scenarios" className="flex flex-wrap items-center gap-2"><ScenarioMenu /></div>
           <Button
             size="icon"
             variant="outline"

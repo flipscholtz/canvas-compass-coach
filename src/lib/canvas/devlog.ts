@@ -9,7 +9,7 @@ export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-27",
     title: "Welcome tour",
-    changes: ["A short welcome tour opens the first time the app is opened, covering the coach, canvas, testing, versions, scenarios and log.", "Reopen it any time with the Tour button in the header."],
+    changes: ["A short welcome tour opens the first time the app is opened, covering the coach, canvas, testing, versions, scenarios and log.", "Reopen it any time with the Tour button in the header.", "The tour is now live: each step highlights the relevant part of the screen with its card beside it."],
   },
   {
     date: "2026-10-27",
