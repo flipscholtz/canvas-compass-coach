@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import { Link } from "@tanstack/react-router";
+import { FileDown } from "lucide-react";
 import { ArrowRight, Compass, Flag, Lightbulb, Mountain, Shuffle, EyeOff, CircleDashed } from "lucide-react";
 import { useCanvasStore } from "@/lib/canvas/store";
 import { analyzeJourney, type Insight } from "@/lib/canvas/journey";
@@ -21,9 +23,12 @@ export function JourneyPanel() {
 
   return (
     <div className="space-y-5 rounded-lg border bg-card p-4">
+      <div className="flex items-start justify-between gap-2">
       <div>
         <h2 className="font-display text-lg font-semibold">Business model journey</h2>
         <p className="text-xs text-muted-foreground">What {versions.length} version{versions.length !== 1 && "s"} of your canvas reveal — and where to look next.</p>
+      </div>
+        <Link to="/report" className="inline-flex shrink-0 items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium hover:bg-muted"><FileDown className="size-3.5" /> PDF report</Link>
       </div>
 
       <ol className="flex flex-wrap items-center gap-2 text-xs">
