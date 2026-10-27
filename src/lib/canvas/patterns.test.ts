@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { emptyCanvas, type BlockId } from "./types";
-import { suggestPattern, filledBlocks } from "./patterns";
+import { suggestPattern, filledBlocks, blocksForPivot } from "./patterns";
 
 const fill = (e: Partial<Record<BlockId, string>>) => {
   const c = emptyCanvas();
@@ -22,5 +22,11 @@ describe("suggestPattern", () => {
   });
   it("counts filled blocks", () => {
     expect(filledBlocks(fill({ segments: "a", revenue: "b" }))).toHaveLength(2);
+  });
+});
+describe("blocksForPivot", () => {
+  it("maps a named pivot to blocks", () => {
+    expect(blocksForPivot("new pricing")).toEqual(["revenue"]);
+    expect(blocksForPivot("new customer segment")).toContain("segments");
   });
 });

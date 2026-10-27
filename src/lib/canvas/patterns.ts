@@ -113,3 +113,17 @@ export function suggestPattern(canvas: Canvas): PatternSuggestion {
     alternative, question, changes,
   };
 }
+
+const PIVOT_CUES: [RegExp, BlockId][] = [
+  [/segment|customer|audience|market|user/i, "segments"],
+  [/pric|revenue|monetis|monetiz|subscription|fee|freemium/i, "revenue"],
+  [/value|offer|product|feature/i, "valueProps"],
+  [/channel|distribut|sales|reach/i, "channels"],
+  [/relationship|support|community|retention/i, "relationships"],
+  [/partner|supplier|licens/i, "keyPartners"],
+  [/activit|process|operat/i, "keyActivities"],
+  [/resource|tech|platform|team/i, "keyResources"],
+  [/cost|margin|cheap/i, "costs"],
+];
+/** Blocks a one-line pivot name points at (e.g. "new pricing" → Revenue Streams). */
+export const blocksForPivot = (name: string): BlockId[] => [...new Set(PIVOT_CUES.filter(([re]) => re.test(name)).map(([, b]) => b))];
