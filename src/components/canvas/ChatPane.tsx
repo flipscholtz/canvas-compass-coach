@@ -23,6 +23,7 @@ export function ChatPane() {
   const s = useCanvasStore();
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const identifyRiskiest = useRiskiest();
@@ -46,7 +47,8 @@ export function ChatPane() {
         const r = await llmTurn({ apiKey: s.apiKey, model: s.model, canvas: head, history });
         s.addItems(r.additions.map((a, i) => (i === 0 && r.assumptions.length ? { ...a, assumptions: r.assumptions } : a)));
         s.setProgress(s.step, r.stage);
-        s.pushMessage({ role: "coach", text: r.reply, flags: r.flags, assumptions: r.assumptions });
+        // A reply that captured nothing (declined/off-topic) shouldn't show assumption chips.
+        s.pushMessage({ role: "coach", text: r.reply, flags: r.flags, assumptions: r.additions.length ? r.assumptions : [] });
       } else {
         await new Promise((res) => setTimeout(res, 550));
         const r = coachTurn(head, s.step, t);
@@ -150,7 +152,7 @@ export function ChatPane() {
                     ))}
                   </div>
                 )}
-                {m.flags?.map((f) => (
+                {(m.coherenceKey !== undefined && !expanded[m.id] ? m.flags?.slice(0, 3) : m.flags)?.map((f) => (
                   <div
                     key={f}
                     className="flex gap-2 rounded-md border border-signal/30 bg-accent px-3 py-2 text-xs text-accent-foreground"
@@ -159,6 +161,15 @@ export function ChatPane() {
                     <span className="min-w-0 whitespace-pre-line break-words">{f}</span>
                   </div>
                 ))}
+                {m.coherenceKey !== undefined && (m.flags?.length ?? 0) > 3 && (
+                  <button
+                    type="button"
+                    onClick={() => setExpanded((e) => ({ ...e, [m.id]: !e[m.id] }))}
+                    className="text-xs font-medium text-signal underline-offset-2 hover:underline"
+                  >
+                    {expanded[m.id] ? "Show top tensions only" : `Show all ${m.flags!.length} findings`}
+                  </button>
+                )}
               </div>
             </div>
           ),

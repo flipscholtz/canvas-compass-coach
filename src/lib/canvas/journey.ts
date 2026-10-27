@@ -59,7 +59,7 @@ export function analyzeJourney(versions: CanvasVersion[], cards: TestCard[] = []
     if (learned.length)
       insights.push({
         kind: "learning",
-        title: `${b.label}: dropped ${learned.length} invalidated hypothesis${learned.length > 1 ? "es" : ""}`,
+        title: `${b.label}: dropped ${learned.length} invalidated ${learned.length > 1 ? "hypotheses" : "hypothesis"}`,
         detail: learned.map((r) => `"${r.text}" (${BLOCKS[r.block].title})`).join("; ") + ". Evidence drove this change — keep it in mind so it isn't reintroduced.",
       });
   }

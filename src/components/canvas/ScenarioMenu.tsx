@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FilePlus2, FolderOpen, Save, Trash2 } from "lucide-react";
+import { FilePlus2, FolderOpen, Lock, RotateCcw, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -23,7 +23,7 @@ export function ScenarioMenu() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="font-display">Saved scenarios</DialogTitle>
-            <DialogDescription>Loading replaces what's on screen. Save first if you want to keep your current work.</DialogDescription>
+            <DialogDescription>Loading replaces what's on screen. Save first if you want to keep your current work. Demo ventures are locked; "Restore demos" resets them to their original state.</DialogDescription>
           </DialogHeader>
           <ul className="max-h-80 space-y-2 overflow-y-auto">
             {s.scenarios.length === 0 && <li className="text-sm text-muted-foreground">No saved scenarios yet.</li>}
@@ -34,10 +34,17 @@ export function ScenarioMenu() {
                   <div className="text-xs text-muted-foreground">{sc.data.versions.length} versions · saved {new Date(sc.savedAt).toLocaleDateString()}</div>
                 </div>
                 <Button size="sm" variant="outline" onClick={() => { s.loadScenario(sc.id); setOpen(null); toast.success(`Loaded “${sc.name}”`); }}>Load</Button>
-                <Button size="icon" variant="ghost" className="size-8" aria-label={`Delete ${sc.name}`} onClick={() => confirm(`Delete “${sc.name}”?`) && s.deleteScenario(sc.id)}><Trash2 /></Button>
+                {sc.demo ? (
+                  <span className="grid size-8 place-items-center text-muted-foreground" title="Demo venture — protected"><Lock className="size-4" /></span>
+                ) : (
+                  <Button size="icon" variant="ghost" className="size-8" aria-label={`Delete ${sc.name}`} onClick={() => confirm(`Delete “${sc.name}”?`) && s.deleteScenario(sc.id)}><Trash2 /></Button>
+                )}
               </li>
             ))}
           </ul>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => { s.restoreDemos(); toast.success("Demo ventures restored"); }}><RotateCcw /> Restore demos</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

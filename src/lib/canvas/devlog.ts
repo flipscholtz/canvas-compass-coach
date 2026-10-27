@@ -8,6 +8,18 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-27",
+    title: "Coach and canvas polish",
+    changes: [
+      "The coach now opens with \"Who is this for, and what job or pain do they have?\" and asks \"How do you know?\" before any product talk.",
+      "Prices you mention (e.g. \"R2000 a month\") are added to Revenue Streams even mid-conversation.",
+      "The stage bar only moves forward; replies that decline a request no longer show assumption chips.",
+      "Coherence checks show the top 3 findings, with the rest behind a toggle.",
+      "The sticky-note edit popup stays on screen; demo ventures are locked and can be brought back with \"Restore demos\".",
+      "Fixed the \"hypothesises\" typo in Journey.",
+    ],
+  },
+  {
+    date: "2026-10-27",
     title: "Shared demo AI",
     changes: ["The coach can use a shared AI key kept on the server, switched on or off for demos.", "Your own key in Settings still takes priority."],
   },

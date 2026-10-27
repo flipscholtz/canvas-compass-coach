@@ -55,6 +55,7 @@ interface State {
   saveScenario: (name: string) => void;
   loadScenario: (id: string) => void;
   deleteScenario: (id: string) => void;
+  restoreDemos: () => void;
 }
 
 /** A named, saved copy of a whole scenario (canvas stack, chat, cards, log). */
@@ -62,12 +63,13 @@ export interface SavedScenario {
   id: string;
   name: string;
   savedAt: string;
+  demo?: boolean;
   data: Pick<State, "versions" | "messages" | "step" | "stage" | "cards" | "scenarioName" | "log">;
 }
 
 const seedScenarios = (): SavedScenario[] =>
   [veriTraceScenario(), tutoringScenario()].map((d) => ({
-    id: uid(), name: d.scenarioName, savedAt: d.versions[d.versions.length - 1]!.createdAt,
+    id: uid(), name: d.scenarioName, demo: true, savedAt: d.versions[d.versions.length - 1]!.createdAt,
     data: { ...d, step: STEPS.length - 1, stage: 5 as Stage },
   }));
 
@@ -175,7 +177,7 @@ export const useCanvasStore = create<State>()(
         });
         return added;
       },
-      setProgress: (step, stage) => set({ step, stage }),
+      setProgress: (step, stage) => set((s) => ({ step, stage: Math.max(s.stage, stage) as Stage })),
       commitVersion: (label, note) =>
         set((s) => {
           const head = s.versions[s.versions.length - 1]!;
@@ -243,6 +245,12 @@ export const useCanvasStore = create<State>()(
         }),
       deleteScenario: (id) =>
         set((s) => ({ scenarios: s.scenarios.filter((x) => x.id !== id), scenarioId: s.scenarioId === id ? null : s.scenarioId })),
+      restoreDemos: () =>
+        set((s) => {
+          const seeds = seedScenarios();
+          const names = new Set(seeds.map((x) => x.name));
+          return { scenarios: [...s.scenarios.filter((x) => !x.demo && !names.has(x.name)), ...seeds] };
+        }),
     }),
     {
       name: "canvasstack-session",

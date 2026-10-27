@@ -163,7 +163,7 @@ function Note({ block, item, readOnly, isNew }: { block: BlockId; item: CanvasIt
       <PopoverTrigger asChild>
         <button className="w-full">{body}</button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 space-y-3">
+      <PopoverContent collisionPadding={12} className="max-h-[var(--radix-popover-content-available-height)] w-80 space-y-3 overflow-y-auto">
         <div className="space-y-1.5 rounded-md border bg-muted/50 p-2.5">
           <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
             Underlying assumption{assumptions.length > 1 ? "s" : ""}
