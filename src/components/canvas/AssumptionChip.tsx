@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { stripBelievePrefix } from "@/lib/canvas/assumptions";
 import type { Assumption, AssumptionLens } from "@/lib/canvas/types";
 
 export const LENS_STYLE: Record<AssumptionLens, string> = {
@@ -18,7 +19,7 @@ export function AssumptionChip({ assumption }: { assumption: Assumption }) {
       >
         {assumption.lens}
       </span>
-      <span>We believe that {assumption.text}.</span>
+      <span>We believe that {stripBelievePrefix(assumption.text)}.</span>
     </div>
   );
 }

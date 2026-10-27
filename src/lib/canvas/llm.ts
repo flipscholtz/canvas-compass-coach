@@ -1,3 +1,4 @@
+import { stripBelievePrefix } from "./assumptions";
 import { type Assumption, BLOCK_ORDER, type BlockId, type Canvas, type ChatMessage, type Stage } from "./types";
 
 const SYSTEM = `You are CanvasStack, a Socratic venture coach using Osterwalder's Business Model Canvas and David J. Bland's Testing Business Ideas.
@@ -59,6 +60,7 @@ export async function llmTurn(opts: {
     flags: Array.isArray(parsed.flags) ? parsed.flags.map(String) : [],
     assumptions: (Array.isArray(parsed.assumptions) ? parsed.assumptions : [])
       .filter((a: Assumption) => ["desirability", "feasibility", "viability"].includes(a.lens) && a.text)
+      .map((a: Assumption) => ({ ...a, text: stripBelievePrefix(a.text) }))
       .slice(0, 2),
   };
 }

@@ -46,6 +46,11 @@ export function extractAssumptions(block: BlockId, text: string): Assumption[] {
   return out.slice(0, 2);
 }
 
+/** Assumption texts must never carry a "We believe that" prefix; the UI adds it. Strip defensively. */
+export function stripBelievePrefix(text: string): string {
+  return text.replace(/^\s*we believe that\s+/i, "").trim();
+}
+
 const LENS_WEIGHT: Record<AssumptionLens, number> = { desirability: 3, viability: 2, feasibility: 1 };
 const BLOCK_WEIGHT: Record<BlockId, number> = {
   segments: 9, valueProps: 8, revenue: 7, channels: 6, keyResources: 5, keyPartners: 4, relationships: 3, keyActivities: 2, costs: 1,
@@ -105,7 +110,7 @@ export function testCardFromAssumption(pick: RiskPick): TestCard {
     block: pick.block,
     lens: pick.assumption.lens,
     assumption: pick.assumption.text,
-    hypothesis: `We believe that ${pick.assumption.text}.`,
+    hypothesis: `We believe that ${stripBelievePrefix(pick.assumption.text)}.`,
     experiment: `To verify that, we will ${e.exp}.`,
     metric: `And measure ${e.metric}.`,
     criteria: `We are right if ${e.criteria}.`,
