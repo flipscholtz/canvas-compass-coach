@@ -27,7 +27,7 @@ export interface CanvasItem {
   /** Underlying assumptions the coach surfaced from this statement */
   assumptions?: Assumption[];
   /** Required to mark an item validated/invalidated: which test and what result backs the verdict */
-  evidence?: Evidence;
+  evidence?: Evidence | undefined;
 }
 
 export interface Evidence {
