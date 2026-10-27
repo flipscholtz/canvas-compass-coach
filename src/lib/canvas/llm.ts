@@ -1,3 +1,4 @@
+import { stripBelievePrefix } from "./assumptions";
 import { type Assumption, BLOCK_ORDER, type BlockId, type Canvas, type ChatMessage, type Stage } from "./types";
 
 const SYSTEM = `You are CanvasStack, a Socratic venture coach using Osterwalder's Business Model Canvas and David J. Bland's Testing Business Ideas.
@@ -62,11 +63,6 @@ export async function llmTurn(opts: {
       .map((a: Assumption) => ({ ...a, text: stripBelievePrefix(a.text) }))
       .slice(0, 2),
   };
-}
-
-/** The model is told to phrase assumptions as clauses completing "We believe that ..."; the UI adds that prefix itself, so strip any duplicate. */
-function stripBelievePrefix(text: string): string {
-  return text.replace(/^\s*we believe that\s+/i, "").trim();
 }
 
 export async function llmSuggest(opts: { apiKey: string; model: string; canvas: Canvas; blocks: BlockId[] }) {
