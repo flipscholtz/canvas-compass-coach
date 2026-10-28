@@ -9,10 +9,10 @@ import { blockTitle, buildCallSheet, listAssumptions } from "@/lib/canvas/callsh
 export const Route = createFileRoute("/callsheet")({
   head: () => ({
     meta: [
-      { title: "Experiment Designer: Interview Call Sheet | CanvasStack" },
+      { title: "Experiment Designer | CanvasStack" },
       { name: "description", content: "Pick assumptions from your canvas and print an interview call sheet with persona, screener and questions." },
-      { property: "og:title", content: "Interview Call Sheet | CanvasStack" },
-      { property: "og:description", content: "Turn untested canvas assumptions into a printable customer interview plan." },
+      { property: "og:title", content: "Experiment Designer | CanvasStack" },
+      { property: "og:description", content: "Turn untested canvas assumptions into a printable interview plan." },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -68,7 +68,7 @@ function Designer() {
         {sheet && selected.length > 0 && (
           <article className="space-y-5 rounded-lg border bg-card p-8 text-sm print:border-0 print:p-0">
             <header className="border-b pb-3">
-              <div className="font-mono text-xs uppercase tracking-widest text-signal">Interview call sheet</div>
+              <div className="font-mono text-xs uppercase tracking-widest text-signal">Experiment designer</div>
               <h2 className="font-display text-2xl font-semibold">{s.scenarioName || "Untitled venture"}</h2>
               <p className="text-muted-foreground">{version?.label} · {new Date().toLocaleDateString()} · {sheet.goal}</p>
             </header>

@@ -29,7 +29,6 @@ export function JourneyPanel() {
         <p className="text-xs text-muted-foreground">What {versions.length} version{versions.length !== 1 && "s"} of your canvas reveal — and where to look next.</p>
       </div>
         <div className="flex shrink-0 gap-2">
-          <Link to="/callsheet" className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium hover:bg-muted"><FileDown className="size-3.5" /> Interview call sheet</Link>
           <Link to="/report" className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium hover:bg-muted"><FileDown className="size-3.5" /> PDF report</Link>
         </div>
       </div>

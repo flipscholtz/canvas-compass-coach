@@ -12,7 +12,7 @@ const STEPS: { target?: string; title: string; body: string }[] = [
   { target: "canvas", title: "Your canvas", body: "Every note starts as an Untested hypothesis. Click a note to see its assumptions, edit it, or mark it Validated or Invalidated. The lightbulb on each block suggests assumptions to test." },
   { target: "tests", title: "Test what matters", body: "\"Extract & Test Riskiest Assumption\" picks the assumption most likely to sink the venture and drafts a Strategyzer Test Card here." },
   { target: "stack", title: "Versions", body: "Commit a snapshot or fork a pivot as you learn. Each version stays in the stack so you can compare them." },
-  { target: "tabs", title: "Journey & decisions", body: "The Journey tab shows pivots, lessons and next questions, with a PDF report and interview call sheets. Changelog & Decisions records every change and why." },
+  { target: "tabs", title: "Journey & decisions", body: "The Journey tab shows pivots, lessons and next questions, with a PDF report. The Testing tab holds Test Cards and the experiment designer for interview call sheets, and Changelog & Decisions records every change and why." },
   { target: "scenarios", title: "Scenarios", body: "Save and load scenarios, or start a new one. Two demos are included: VeriTrace and LearnLoop." },
   { target: "tour", title: "Ready?", body: "Start answering the coach, or open a demo scenario. You can replay this tour any time from here." },
 ];

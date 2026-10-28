@@ -1,4 +1,5 @@
-import { FlaskConical, Trash2, ChevronDown } from "lucide-react";
+import { FlaskConical, Trash2, ChevronDown, FileDown } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCanvasStore } from "@/lib/canvas/store";
@@ -22,9 +23,12 @@ export function TestCards() {
           <span className="rounded-full bg-muted px-2 font-mono text-[10px]">{s.cards.length}</span>
           <ChevronDown className={cn("size-4 transition-transform", open && "rotate-180")} />
         </button>
-        <Button size="sm" variant="outline" onClick={identifyRiskiest}>
-          Extract & Test Riskiest Assumption
-        </Button>
+        <div className="flex items-center gap-2">
+          <Link to="/callsheet" className="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs font-medium hover:bg-muted"><FileDown className="size-3.5" /> Experiment designer</Link>
+          <Button size="sm" variant="outline" onClick={identifyRiskiest}>
+            Extract & Test Riskiest Assumption
+          </Button>
+        </div>
       </div>
       {open && (
         <div className="grid gap-3 border-t p-4 md:grid-cols-2">

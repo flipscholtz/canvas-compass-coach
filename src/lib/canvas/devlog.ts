@@ -7,6 +7,11 @@ export interface DevLogEntry {
 
 export const DEV_LOG: DevLogEntry[] = [
   {
+    date: "2026-10-28",
+    title: "Experiment designer moved to Testing",
+    changes: ["The interview call sheet is now called \"Experiment designer\".", "It moved from the Journey tab to the Testing tab, next to Test Cards."],
+  },
+  {
     date: "2026-10-27",
     title: "Smarter Fork pivot",
     changes: ["Fork pivot now asks: 'I know my pivot' or 'Suggest a pattern' (after 5 blocks have content).", "The coach names the closest Business Model Generation pattern, suggests an alternative and asks which blocks would change.", "Blocks expected to change are outlined on the new version; the reason is recorded in the Log and Journey tabs."],
