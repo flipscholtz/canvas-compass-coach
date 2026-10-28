@@ -150,12 +150,12 @@ function App() {
             {readOnly && (
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-accent px-3 py-2 text-xs text-accent-foreground">
                 <span className="flex items-center gap-2">
-                  <Eye className="size-3.5" /> Read-only snapshot · <em>{viewing.note}</em>
+                  <Eye className="size-3.5 shrink-0" /> Saved version · read-only · <em>{viewing.note}</em>
                   {prev && <span className="text-valid">· ring = added since previous · dashed = removed</span>}
                 </span>
-                <button className="font-medium underline" onClick={() => s.setViewing(null)}>
-                  Back to working canvas
-                </button>
+                <Button variant="outline" size="sm" onClick={() => s.setViewing(null)}>
+                  Return to working canvas
+                </Button>
               </div>
             )}
             <div data-tour="canvas"><CanvasGrid canvas={viewing.canvas} prev={prev} readOnly={readOnly} /></div>

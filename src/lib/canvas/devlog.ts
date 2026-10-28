@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-28",
+    title: "Clearer snapshots, pivots and version history",
+    changes: ["Commit snapshot is now Save snapshot, with a clear distinction between refining the same model and exploring a new direction.", "A short help dialog explains what is copied, which blocks to rethink, and how Log and Journey record pivots.", "History now opens saved versions directly; read-only labels and a return button make revisiting earlier points clearer. New snapshots and pivots are available on the working canvas."],
+  },
+  {
+    date: "2026-10-28",
     title: "Experiment designer moved to Testing",
     changes: ["The interview call sheet is now called \"Experiment designer\".", "It moved from the Journey tab to the Testing tab, next to Test Cards."],
   },
