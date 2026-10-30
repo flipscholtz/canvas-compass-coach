@@ -78,8 +78,9 @@ export function analyzeCoherence(canvas: Canvas) {
   if (active("revenue").length && active("segments").length && !/\b(pay|pays|paid|charge|subscri|fee|per|bill|invoice|deposit)/i.test(text("revenue"))) {
     add("who-pays", "missing", 1, "Revenue doesn't say who pays, or how", ["revenue", "segments"], "Without a payer, charging unit and payment method you cannot test willingness to pay or forecast income.", `State who in ${BLOCKS.segments.title} pays, for what unit (per month, per order, once-off) and how they pay.`);
   }
-  if (active("valueProps").length && active("keyActivities").length && !overlaps(text("valueProps"), text("keyActivities")).length) {
-    add("vp-activities", "potential", 1, "Key Activities don't clearly deliver the promise", ["valueProps", "keyActivities"], "If the work you list doesn't produce what the Value Proposition promises, customers won't get the outcome they pay for.", "For each promise in the Value Proposition, add the activity that produces it and who does it.");
+  const unsupported = active("keyActivities").length ? active("valueProps").filter((item) => !overlaps(item.text, text("keyActivities")).length) : [];
+  if (unsupported.length) {
+    add("vp-activities", "potential", 1, "Key Activities don't clearly deliver the promise", ["valueProps", "keyActivities"], `No listed activity produces: ${unsupported.slice(0, 2).map((i) => `“${i.text}”`).join(", ")}. If the work doesn't produce what you promise, customers won't get the outcome they pay for.`, "For each promise in the Value Proposition, add the activity that produces it and who does it.");
   }
   if (active("costs").length && (active("keyResources").length || active("keyActivities").length)) {
     const uncovered = [...active("keyResources"), ...active("keyActivities")].filter((item) => !overlaps(item.text, text("costs")).length).map((item) => item.text);

@@ -122,8 +122,7 @@ describe("restaurant website scenario", () => {
     const quoted = view.groups.flatMap((g) => g.findings.flatMap((p) => p.quotes.map((q) => q.item.id)));
     expect(new Set(quoted).size).toBe(quoted.length);
     const gaps = analyzeCoherence(restaurant()).findings.filter((f) => f.id.startsWith("gap-"));
-    expect(gaps.flatMap((f) => f.entries).some((e) => e.block === "valueProps" && f(e))).toBe(false);
-    function f(e: { block: BlockId }) { return gaps.some((g) => g.id !== "gap-valueProps" && g.entries.some((x) => x.block === e.block)); }
+    expect(gaps.filter((g) => g.id !== "gap-valueProps").flatMap((g) => g.entries).some((e) => e.block === "valueProps")).toBe(false);
   });
   it("names costs missing for resources and keeps hypotheses separate from evidence", () => {
     const canvas = restaurant();
