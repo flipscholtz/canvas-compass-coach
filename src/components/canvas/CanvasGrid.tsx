@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { blockNumber } from "@/lib/canvas/sequence";
 import { useCanvasStore } from "@/lib/canvas/store";
 import { BLOCKS, type BlockId, type Canvas, type CanvasItem, type ItemStatus } from "@/lib/canvas/types";
 
@@ -77,8 +78,9 @@ function Block({ id, items, prev, readOnly, active, flashing }: { id: BlockId; i
     >
       <div className="mb-2 flex items-start justify-between gap-2">
         <div>
-          <h3 className={cn("font-display text-sm font-semibold leading-tight break-words", isVP && "text-signal")}><span className="hidden md:inline">{BLOCKS[id].title}</span><Button variant="ghost" className="h-auto w-full justify-start gap-2 whitespace-normal px-0 py-0 text-left md:hidden" aria-expanded={expanded} onClick={() => setExpanded((o) => !o)}>{BLOCKS[id].title}<ChevronDown className={cn("size-3 shrink-0 transition-transform", expanded && "rotate-180")} /><span className="text-[10px] text-muted-foreground">{items.length}</span></Button></h3>
+          <h3 className={cn("font-display text-sm font-semibold leading-tight break-words", isVP && "text-signal")}><span aria-label={`Step ${blockNumber(id)} of 9`} title="Recommended order" className={cn("mr-1.5 inline-flex size-4 items-center justify-center rounded-full border align-[1px] font-mono text-[9px] font-medium", active ? "border-signal bg-signal text-signal-foreground" : "text-muted-foreground")}>{blockNumber(id)}</span><span className="hidden md:inline">{BLOCKS[id].title}</span><Button variant="ghost" className="h-auto w-full justify-start gap-2 whitespace-normal px-0 py-0 text-left md:hidden" aria-expanded={expanded} onClick={() => setExpanded((o) => !o)}>{BLOCKS[id].title}<ChevronDown className={cn("size-3 shrink-0 transition-transform", expanded && "rotate-180")} /><span className="text-[10px] text-muted-foreground">{items.length}</span></Button></h3>
           <p className="text-[11px] text-muted-foreground">{BLOCKS[id].hint}</p>
+          {active && !readOnly && <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-signal">Coach is working here</p>}
           {focus && <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-signal">Pivot: rewrite this block</p>}
         </div>
         {!readOnly && (

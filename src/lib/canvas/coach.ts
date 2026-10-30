@@ -1,7 +1,7 @@
 import { extractAssumptions } from "./assumptions";
 import { coachHelp } from "./help";
 import { facilitate, FOCUS_QUESTIONS } from "./facilitation";
-import { BRIDGES, INTERVIEW_ORDER, balanceNote, jumpRequest, missingFoundations } from "./sequence";
+import { BRIDGES, balanceNote, jumpRequest, missingFoundations } from "./sequence";
 import { type Assumption, BLOCKS, type BlockId, type Canvas, type ChatMessage, type Stage, type TestCard, uid } from "./types";
 
 /** Scripted Socratic path through the canvas (one question per step). */

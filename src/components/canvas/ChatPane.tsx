@@ -9,7 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/comp
 import { pickRiskiest } from "@/lib/canvas/assumptions";
 import { filledBlocks } from "@/lib/canvas/patterns";
 import { changedNotes } from "./useCanvasFeedback";
-import { coachTurn, STEPS } from "@/lib/canvas/coach";
+import { coachTurn, STEPS, stageThrough, stepQuestion } from "@/lib/canvas/coach";
 import { useRiskiest } from "./useRiskiest";
 import { AssumptionChip } from "./AssumptionChip";
 import { llmTurn } from "@/lib/canvas/llm";
@@ -159,8 +159,8 @@ export function ChatPane() {
       const next = Math.min(s.step + 1, STEPS.length - 1);
       const step = STEPS[next];
       if (!step) return;
-      s.setProgress(next, step.stage);
-      s.pushMessage({ role: "coach", text: `Parking that${cur?.block ? ` — noted as an untested assumption in ${BLOCKS[cur.block].title}` : ""}. ${step.question}` });
+      s.setProgress(next, stageThrough(next));
+      s.pushMessage({ role: "coach", text: `Parking that${cur?.block ? ` — noted as an untested assumption in ${BLOCKS[cur.block].title}` : ""}. ${stepQuestion(next)}` });
     }
   }
 
