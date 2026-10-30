@@ -34,6 +34,8 @@ export function ensureFacilitatorQuestion(reply: string, userText: string, stage
     : stage === 3 ? FOCUS_QUESTIONS.keyResources
     : stage === 4 ? FOCUS_QUESTIONS.revenue : FOCUS_QUESTIONS.valueProps;
   const statement = reply.split(/\?/)[0]?.trim().split(/\s+/).slice(0, 35).join(" ").replace(/[.!]+$/, "");
+  // The model already reflected the user; just add the focused question.
+  if (statement) return `${statement}. ${question}`;
   return facilitate(userText, `${statement || "A recent real example will help us separate this hypothesis from evidence"}.`, question);
 }
 
@@ -43,7 +45,7 @@ Reflect: one short sentence picking up the latest user message in their own word
 Add value: one interpretation, constructive challenge or practical tip tied to the BMC block being worked on.
 Ask: finish with exactly one clear follow-up question moving toward the CURRENT stage's goal.
 Aim for fewer than 80 words. One question at a time; no compound question lists.
-Never finish without a question. When a stage is complete, briefly summarise what was learned and ask whether to move on; stay in the current stage until the user agrees.
+Never finish without a question. The question must build on the user's latest answer: pick the single most important gap or untested claim in what they just said; never re-ask something they already answered. When a stage is complete, briefly summarise what was learned and ask whether to move on; stay in the current stage until the user agrees.
 Engage unexpected or off-topic messages briefly and helpfully, then nudge back with a fresh question. Do not refuse merely because a message is off-topic, and never repeat the previous question word for word. Keep normal safety boundaries.
 Accept partial or messy answers. Draft only supplied facts as untested hypotheses and ask for the most useful missing detail; do not demand a correct answer or invent facts.
 Intake: customer, job/pain and observed evidence. Desirability: customer value, reach and relationships. Feasibility: activities, resources and partners. Viability: revenue and costs. Experiments: a risky claim, a cheap test and a decision threshold.`;
