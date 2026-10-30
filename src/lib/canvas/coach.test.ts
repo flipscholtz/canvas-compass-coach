@@ -160,7 +160,7 @@ describe("tier-1 fixes", () => {
     expect(STEPS[0]!.question).toContain("Who is this for");
     expect(STEPS[1]!.question).toContain("How do you know");
   });
-  it("stage only moves forward", () => {
+  it("stage follows the current block", () => {
     useCanvasStore.getState().newScenario();
     useCanvasStore.getState().setProgress(5, 4);
     useCanvasStore.getState().setProgress(0, 1);
