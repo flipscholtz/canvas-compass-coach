@@ -67,7 +67,7 @@ export function ChatPane() {
       if (help) {
         publish({ role: "coach", text: help.reply, helpOffer: { ...help.offer, versionId: state.versions.at(-1)?.id ?? "" } });
       } else if (live) {
-        const r = await withCoachDeadline((signal) => llmTurn({ apiKey: s.apiKey, model: s.model, canvas: head, history, signal }));
+        const r = await withCoachDeadline((signal) => llmTurn({ apiKey: s.apiKey, model: s.model, canvas: head, history, stage: s.stage, signal }));
         if (!currentSession()) return;
         s.addItems(r.additions.map((a, i) => (i === 0 && r.assumptions.length ? { ...a, assumptions: r.assumptions } : a)));
         s.setProgress(s.step, r.stage);
@@ -75,7 +75,7 @@ export function ChatPane() {
         publish({ role: "coach", text: r.reply, flags: r.flags, assumptions: r.additions.length ? r.assumptions : [] });
       } else {
         await new Promise((res) => setTimeout(res, 550));
-        const r = coachTurn(head, s.step, t);
+        const r = coachTurn(head, s.step, t, history);
         if (!r.reply.trim()) throw new Error("Offline coach returned no text");
         if (!currentSession()) return;
         s.addItems(r.additions);
