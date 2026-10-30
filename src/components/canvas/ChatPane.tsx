@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Compass, AlertTriangle, Loader2 } from "lucide-react";
+import { ArrowUp, Compass, AlertTriangle, Loader2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { useRiskiest } from "./useRiskiest";
 import { AssumptionChip } from "./AssumptionChip";
 import { llmTurn } from "@/lib/canvas/llm";
 import { useServerAi } from "./useServerAi";
+import { COACH_FALLBACK, withCoachDeadline } from "@/lib/canvas/chat-recovery";
 
 const QUICK = [
   { label: "Identify My Riskiest Assumption", key: "risk" },
@@ -26,6 +27,8 @@ export function ChatPane() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const busyRef = useRef(false);
+  const [pendingRetry, setPendingRetry] = useState<string | null>(null);
   const identifyRiskiest = useRiskiest();
   const head = s.versions.at(-1)?.canvas;
   const serverAi = useServerAi();
@@ -35,31 +38,52 @@ export function ChatPane() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [s.messages.length, busy]);
 
-  async function send(text: string) {
+  async function send(text: string, retry?: { failureId: string; userId: string }) {
     const t = text.trim();
-    if (!t || busy || !head) return;
-    setInput("");
-    s.pushMessage({ role: "user", text: t });
+    if (!t || busyRef.current || !head) return;
+    busyRef.current = true;
+    if (!retry) {
+      setInput("");
+      s.pushMessage({ role: "user", text: t });
+    }
+    const state = useCanvasStore.getState();
+    const userId = retry?.userId ?? state.messages.at(-1)?.id;
+    if (!userId) { busyRef.current = false; return; }
+    const userIndex = state.messages.findIndex((m) => m.id === userId);
+    const history = state.messages.slice(0, userIndex + 1).filter((m) => !m.retryUserId);
+    const sessionId = state.versions[0]?.id;
+    const currentSession = () => useCanvasStore.getState().versions[0]?.id === sessionId;
+    const publish = (message: Parameters<typeof s.pushMessage>[0]) => {
+      if (!currentSession()) return;
+      if (retry) s.replaceMessage(retry.failureId, message);
+      else s.pushMessage(message);
+    };
+    setPendingRetry(retry?.failureId ?? null);
     setBusy(true);
     try {
       if (live) {
-        const history = [...useCanvasStore.getState().messages];
-        const r = await llmTurn({ apiKey: s.apiKey, model: s.model, canvas: head, history });
+        const r = await withCoachDeadline((signal) => llmTurn({ apiKey: s.apiKey, model: s.model, canvas: head, history, signal }));
+        if (!currentSession()) return;
         s.addItems(r.additions.map((a, i) => (i === 0 && r.assumptions.length ? { ...a, assumptions: r.assumptions } : a)));
         s.setProgress(s.step, r.stage);
         // A reply that captured nothing (declined/off-topic) shouldn't show assumption chips.
-        s.pushMessage({ role: "coach", text: r.reply, flags: r.flags, assumptions: r.additions.length ? r.assumptions : [] });
+        publish({ role: "coach", text: r.reply, flags: r.flags, assumptions: r.additions.length ? r.assumptions : [] });
       } else {
         await new Promise((res) => setTimeout(res, 550));
         const r = coachTurn(head, s.step, t);
+        if (!r.reply.trim()) throw new Error("Offline coach returned no text");
+        if (!currentSession()) return;
         s.addItems(r.additions);
         s.setProgress(r.nextStep, r.stage);
-        s.pushMessage({ role: "coach", text: r.reply, flags: r.flags, assumptions: r.assumptions });
+        publish({ role: "coach", text: r.reply, flags: r.flags, assumptions: r.assumptions });
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Coach request failed");
+      console.error("[CanvasStack coach] Turn failed", e);
+      publish({ role: "coach", text: COACH_FALLBACK, retryUserId: userId });
     } finally {
       setBusy(false);
+      busyRef.current = false;
+      setPendingRetry(null);
       inputRef.current?.focus();
     }
   }
@@ -128,7 +152,7 @@ export function ChatPane() {
       </div>
 
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5">
-        {s.messages.map((m) =>
+        {s.messages.filter((m) => m.id !== pendingRetry).map((m) =>
           m.role === "user" ? (
             <div key={m.id} className="flex justify-end">
               <p className="max-w-[85%] rounded-lg rounded-br-sm bg-ink px-3.5 py-2.5 text-sm text-ink-foreground">
@@ -141,7 +165,13 @@ export function ChatPane() {
                 <Compass className="size-4" />
               </div>
               <div className="max-w-[90%] space-y-2">
-                <p className="whitespace-pre-line break-words text-sm leading-relaxed">{m.text}</p>
+                <p className="whitespace-pre-line break-words text-sm leading-relaxed">{m.text.trim() || COACH_FALLBACK}</p>
+                {m.retryUserId && (
+                  <Button variant="outline" size="sm" disabled={busy} onClick={() => {
+                    const user = s.messages.find((u) => u.id === m.retryUserId && u.role === "user");
+                    if (user) void send(user.text, { failureId: m.id, userId: user.id });
+                  }}><RotateCcw className="size-3.5" /> Retry</Button>
+                )}
                 {!!m.assumptions?.length && (
                   <div className="space-y-1.5 rounded-md border bg-background p-2.5">
                     <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -162,21 +192,22 @@ export function ChatPane() {
                   </div>
                 ))}
                 {m.coherenceKey !== undefined && (m.flags?.length ?? 0) > 3 && (
-                  <button
+                  <Button
                     type="button"
+                    variant="link"
                     onClick={() => setExpanded((e) => ({ ...e, [m.id]: !e[m.id] }))}
                     className="text-xs font-medium text-signal underline-offset-2 hover:underline"
                   >
-                    {expanded[m.id] ? "Show top tensions only" : `Show all ${m.flags!.length} findings`}
-                  </button>
+                    {expanded[m.id] ? "Show top tensions only" : `Show all ${m.flags?.length ?? 0} findings`}
+                  </Button>
                 )}
               </div>
             </div>
           ),
         )}
         {busy && (
-          <div className="flex items-center gap-2 pl-10 text-xs text-muted-foreground">
-            <Loader2 className="size-3.5 animate-spin" /> Thinking about what you're not saying…
+          <div role="status" className="flex items-center gap-2 pl-10 text-xs text-muted-foreground">
+            <Loader2 className="size-3.5 animate-spin" /> Coach is thinking…
           </div>
         )}
         <div ref={endRef} />
