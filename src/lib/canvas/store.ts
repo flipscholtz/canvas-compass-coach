@@ -41,6 +41,7 @@ interface State {
   deleteItem: (block: BlockId, id: string) => void;
   pushMessage: (m: Omit<ChatMessage, "id">) => void;
   replaceMessage: (id: string, m: Omit<ChatMessage, "id">) => void;
+  resolveHelpOffer: (id: string, accept: boolean) => void;
   checkCoherence: () => boolean;
   setProgress: (step: number, stage: Stage) => void;
   commitVersion: (label: string, note: string, focusBlocks?: BlockId[]) => void;
@@ -168,6 +169,20 @@ export const useCanvasStore = create<State>()(
         }),
       pushMessage: (m) => set((s) => ({ messages: [...s.messages, { ...m, id: uid() }] })),
       replaceMessage: (id, m) => set((s) => ({ messages: s.messages.map((old) => old.id === id ? { ...m, id } : old) })),
+      resolveHelpOffer: (id, accept) => set((s) => {
+        const message = s.messages.find((m) => m.id === id && m.role === "coach");
+        const offer = message?.helpOffer;
+        const head = s.versions.at(-1);
+        if (!offer || offer.decision || !head || (accept && (s.viewingId || offer.versionId !== head.id))) return {};
+        const messages = s.messages.map((m) => m.id === id ? { ...m, helpOffer: { ...offer, decision: accept ? "accepted" as const : "dismissed" as const } } : m);
+        if (!accept) return { messages };
+        const exists = head.canvas[offer.block].some((item) => item.text.toLowerCase() === offer.claim.toLowerCase());
+        const versions = exists ? s.versions : updateHead(s.versions, (v) => ({ ...v, canvas: { ...v.canvas, [offer.block]: [...v.canvas[offer.block], { id: uid(), text: offer.claim, status: "hypothesis", source: "suggested" }] } }));
+        const existingCard = s.cards.find((c) => c.assumption === offer.claim && c.block === offer.block);
+        const card = existingCard ?? { ...offer.card, id: uid() };
+        return { messages, versions, cards: existingCard ? s.cards : [card, ...s.cards], drawerOpen: true, highlightCardId: card.id,
+          log: withLog(s, [{ kind: "decision", category: "test", block: offer.block, summary: `Accepted evidence-test proposal: ${offer.claim}`, rationale: "Founder chose Yes to record an untested assumption and draft its Test Card; no evidence or validation implied." }]) };
+      }),
       checkCoherence: () => {
         let added = false;
         set((s) => {

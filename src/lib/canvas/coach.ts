@@ -1,4 +1,5 @@
 import { extractAssumptions } from "./assumptions";
+import { coachHelp } from "./help";
 import { type Assumption, BLOCKS, type BlockId, type Canvas, type Stage, type TestCard, uid } from "./types";
 
 /** Scripted Socratic path through the canvas (one question per step). */
@@ -195,10 +196,10 @@ export function coachTurn(canvas: Canvas, stepIndex: number, answer: string): Co
   const step = STEPS[Math.max(0, Math.min(stepIndex, STEPS.length - 1))] ?? STEPS[0];
   if (!step) throw new Error("No coaching question available");
   const message = answer.trim();
+  const help = coachHelp({ text: message, canvas, block: step.block, question: step.question });
+  if (help) return { reply: help.reply, additions: [], flags: [], assumptions: [], nextStep: stepIndex, stage: step.stage };
   let assistance: string | undefined;
-  if (/\b(data|statistics|stats|research)\b/i.test(message) && /\?|\b(help|find|where|source|can you)\b/i.test(message)) {
-    assistance = "Yes — start with the national statistics office’s household or labour-force surveys, then check local industry reports. Look for how many households pay for domestic cleaning, the survey date and who was counted; I can’t look up live figures here. Which country or area are your homeowners in?";
-  } else if (/^(ok(?:ay)?|yes|sure|thanks|thank you|got it)[.!\s]*$/i.test(message)) {
+  if (/^(ok(?:ay)?|yes|sure|thanks|thank you|got it)[.!\s]*$/i.test(message)) {
     assistance = `Let's stay with the current question. ${step.question}`;
   } else if (/\?|^(help|what do you mean|explain|can you|could you|please help|i don['’]t understand)\b/i.test(message)) {
     assistance = stepIndex <= 1
