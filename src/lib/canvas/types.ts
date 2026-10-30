@@ -69,6 +69,8 @@ export interface ChatMessage {
   assumptions?: Assumption[];
   /** Content/status fingerprint for idempotent local coherence checks. */
   coherenceKey?: string;
+  /** Structured local coherence review (newer messages); older ones only have flags. */
+  coherenceReport?: import("./coherence").CoherenceReport;
   /** Failed turns point to the original user message for an explicit retry. */
   retryUserId?: string;
   helpOffer?: HelpOffer;

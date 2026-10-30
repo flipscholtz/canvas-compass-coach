@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-30",
+    title: "Clearer, shorter Coherence check",
+    changes: ["Shows the top 3 gaps first, one each for earning revenue, delivering the value and acquiring customers; the rest are grouped by theme behind \"See all issues\".", "New cross-block checks: promises no activity delivers, channels not linked to the customer, resources and activities missing from costs, and revenue that doesn't say who pays.", "Each canvas entry is quoted only once, with its status (untested, evidence recorded, validated without evidence, invalidated) and a one-line evidence summary.", "Each issue explains why it matters and the next step, and \"Work on this\" makes the coach focus on it."],
+  },
+  {
+    date: "2026-10-30",
     title: "Coach handles long, detailed answers",
     changes: ["Fixed the cause of \"lost my train of thought\": the coach threw away a whole reply when it named a canvas block slightly differently (e.g. \"Customer Segments\"). It now keeps the reply and only drops the bits it can't place.", "If the live coach does fail, your message stays, you get a Retry button and an offline follow-up question instead of a dead end. Nothing is marked Validated without evidence."],
   },

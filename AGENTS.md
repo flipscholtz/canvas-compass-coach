@@ -16,4 +16,4 @@
 - All app state lives in a client-side zustand store (src/lib/canvas/store.ts) persisted to localStorage: guest mode with no backend or sign-in is a hard requirement.
 - The offline coach (src/lib/canvas/coach.ts) is pure, deterministic functions so its rules stay unit-testable.
 - Shared pure facilitation helpers define the live prompt and local reply shape; offline stage transitions use the existing chat history to request consent before advancing, avoiding a second progress state.
-- Explicit coherence reviews use the pure local analyzer in src/lib/canvas/coherence.ts via the existing store, independent of optional AI settings; content/status fingerprints prevent repeated unchanged reports and the selected version supplies the reviewed canvas.
+- Explicit coherence reviews use the pure local analyzer in src/lib/canvas/coherence.ts (analysis and the deduplicated, theme-prioritised presentCoherence view stay pure and testable) via the existing store, independent of optional AI settings; content/status fingerprints prevent repeated unchanged reports and the selected version supplies the reviewed canvas.

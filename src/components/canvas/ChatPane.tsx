@@ -17,6 +17,8 @@ import { useServerAi } from "./useServerAi";
 import { COACH_FALLBACK, withCoachDeadline } from "@/lib/canvas/chat-recovery";
 import { coachHelp } from "@/lib/canvas/help";
 import { BLOCKS } from "@/lib/canvas/types";
+import { CoherenceView } from "./CoherenceView";
+import type { CoherenceFinding } from "@/lib/canvas/coherence";
 
 const QUICK = [
   { label: "Identify My Riskiest Assumption", short: "Riskiest assumption", key: "risk", icon: Target, hint: "Riskiest assumption: finds the untested belief most likely to sink the venture and drafts a Test Card for it.", suggest: "You've covered enough ground — try “Riskiest assumption” to pick what to test first." },
@@ -139,6 +141,13 @@ export function ChatPane() {
     }
   }
 
+  /** Puts one coherence issue in focus: the coach asks about its main block, which the canvas highlights. */
+  function focusIssue(f: CoherenceFinding) {
+    const block = BLOCKS[f.blocks.find((b) => b !== "valueProps" || f.blocks.length === 1) ?? f.blocks[0]!].title;
+    s.pushMessage({ role: "coach", text: `Let's focus on “${f.title}”.\n${f.action.replace(/\?$/, ".")}\nWhat will you add to ${block} first?` });
+    inputRef.current?.focus();
+  }
+
   function quick(key: QuickKey) {
     setUsed((u) => new Set(u).add(key));
     if (key === "risk") {
@@ -225,7 +234,8 @@ export function ChatPane() {
                     ))}
                   </div>
                 )}
-                {(m.coherenceKey !== undefined && !expanded[m.id] ? m.flags?.slice(0, 3) : m.flags)?.map((f) => (
+                {m.coherenceReport && <CoherenceView report={m.coherenceReport} onFocus={focusIssue} />}
+                {!m.coherenceReport && (m.coherenceKey !== undefined && !expanded[m.id] ? m.flags?.slice(0, 3) : m.flags)?.map((f) => (
                   <div
                     key={f}
                     className="flex gap-2 rounded-md border border-signal/30 bg-accent px-3 py-2 text-xs text-accent-foreground"
@@ -234,7 +244,7 @@ export function ChatPane() {
                     <span className="min-w-0 whitespace-pre-line break-words">{f}</span>
                   </div>
                 ))}
-                {m.coherenceKey !== undefined && (m.flags?.length ?? 0) > 3 && (
+                {!m.coherenceReport && m.coherenceKey !== undefined && (m.flags?.length ?? 0) > 3 && (
                   <Button
                     type="button"
                     variant="link"

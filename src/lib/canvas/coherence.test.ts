@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { analyzeCoherence, coherenceKey } from "./coherence";
+import { analyzeCoherence, coherenceKey, presentCoherence } from "./coherence";
 import { BLOCK_ORDER, emptyCanvas, type Canvas, type BlockId } from "./types";
 import { useCanvasStore } from "./store";
 
@@ -94,5 +94,42 @@ describe("local coherence review", () => {
     store.setViewing(null);
     store.checkCoherence();
     expect(useCanvasStore.getState().messages.at(-1)?.flags?.join(" ")).toContain(costs);
+  });
+});
+function restaurant(): Canvas {
+  const canvas = emptyCanvas();
+  const add = (block: BlockId, ...texts: string[]) => { canvas[block] = texts.map((text, i) => ({ id: `${block}${i}`, text, status: "hypothesis" as const })); };
+  add("segments", "Independent restaurant and takeaway owners in Durban without a website");
+  add("valueProps", "Mobile-friendly websites with online menus and WhatsApp ordering", "More orders from local diners searching online");
+  add("channels", "Facebook posts and walking in");
+  add("revenue", "R300 a month");
+  add("keyActivities", "Building websites myself");
+  add("keyResources", "My web design skills", "Laptop");
+  add("costs", "Domain and hosting fees");
+  return canvas;
+}
+
+describe("restaurant website scenario", () => {
+  it("puts revenue, delivery and acquisition gaps on top with next steps", () => {
+    const { top } = presentCoherence(analyzeCoherence(restaurant()));
+    expect(top).toHaveLength(3);
+    expect(new Set(top.map((p) => p.finding.theme))).toEqual(new Set(["revenue", "deliver", "acquire"]));
+    expect(top.every((p) => ["revenue", "deliver", "acquire"].includes(p.finding.theme) && p.finding.why && p.finding.action)).toBe(true);
+    const ids = analyzeCoherence(restaurant()).findings.map((f) => f.id);
+    expect(ids).toEqual(expect.arrayContaining(["who-pays", "vp-activities", "cost-coverage", "reach"]));
+  });
+  it("quotes each canvas entry at most once across the report", () => {
+    const view = presentCoherence(analyzeCoherence(restaurant()));
+    const quoted = view.groups.flatMap((g) => g.findings.flatMap((p) => p.quotes.map((q) => q.item.id)));
+    expect(new Set(quoted).size).toBe(quoted.length);
+    const gaps = analyzeCoherence(restaurant()).findings.filter((f) => f.id.startsWith("gap-"));
+    expect(gaps.filter((g) => g.id !== "gap-valueProps").flatMap((g) => g.entries).some((e) => e.block === "valueProps")).toBe(false);
+  });
+  it("names costs missing for resources and keeps hypotheses separate from evidence", () => {
+    const canvas = restaurant();
+    canvas.keyResources[0] = { ...canvas.keyResources[0]!, status: "validated" };
+    const report = analyzeCoherence(canvas);
+    expect(report.findings.find((x) => x.id === "cost-coverage")?.why).toContain("Laptop");
+    expect(report.evidence).toEqual({ untested: 8, evidenced: 0, unsupported: 1, invalidated: 0 });
   });
 });
