@@ -32,7 +32,7 @@ export const STEPS: Step[] = [
 ];
 
 /** Highest stage reached by the scripted path up to a step (stages never move backwards). */
-export const stageThrough = (i: number) => Math.max(1, ...STEPS.slice(0, i + 1).map((x) => x.stage)) as Stage;
+export const stageThrough = (i: number) => (STEPS[Math.max(0, Math.min(i, STEPS.length - 1))]?.stage ?? 1) as Stage;
 
 /** Question for a step, with a bridge sentence when it opens a new block. */
 export function stepQuestion(i: number): string {
