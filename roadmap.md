@@ -1,5 +1,5 @@
 - [x] Add current-canvas coherence analysis and duplicate-check protection.
 - [x] Test empty, tutoring, financial, changed, uncertain and repeated-check scenarios.
 - [x] Verify the coach in the app and update App updates.
-- [ ] Prevent blank/frozen coach replies and provide explicit retry recovery.
-- [ ] Test 30-second failures and free-text requests; verify the reported conversation in the app.
+- [x] Prevent blank/frozen coach replies and provide explicit retry recovery.
+- [x] Test 30-second failures and free-text requests; verify the reported conversation in the app.
