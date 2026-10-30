@@ -193,7 +193,7 @@ export const useCanvasStore = create<State>()(
           if (previous?.coherenceKey === key) return {};
           const report = analyzeCoherence(version.canvas);
           added = true;
-          return { messages: [...s.messages, { id: uid(), role: "coach", coherenceKey: key, text: `${s.viewingId ? "Snapshot" : "Working canvas"}: ${version.label}\n${report.summary}`, flags: report.findings.map(formatCoherenceFinding) }] };
+          return { messages: [...s.messages, { id: uid(), role: "coach", coherenceKey: key, text: `${s.viewingId ? "Snapshot" : "Working canvas"}: ${version.label}\n${report.summary}`, flags: report.findings.map(formatCoherenceFinding), coherenceReport: report }] };
         });
         return added;
       },
