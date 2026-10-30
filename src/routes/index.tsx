@@ -94,8 +94,8 @@ function App() {
     <div className="flex h-dvh flex-col overflow-hidden overscroll-none">
       <Toaster position="top-center" offset="max(16px, env(safe-area-inset-top))" />
       <WelcomeWizard open={tour} onOpenChange={setTour} />
-      <header className="grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b bg-paper px-3 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] sm:flex sm:justify-between sm:gap-3 sm:px-4 sm:py-3 lg:px-6">
-        <div className="flex min-w-0 items-center gap-3">
+      <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b bg-paper px-3 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] sm:flex sm:justify-between sm:gap-3 sm:px-4 sm:py-3 lg:px-6">
+        <div className="flex min-w-0 flex-1 basis-48 items-center gap-3">
           <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-ink text-ink-foreground">
             <Layers className="size-5" />
           </div>
@@ -108,13 +108,13 @@ function App() {
             </p>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5">
+        <div className="flex min-w-0 max-w-full items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
           <Popover>
             <PopoverTrigger asChild><Button size="icon" variant="ghost" className="size-11 md:size-8" aria-label="About this advice"><Info className="size-4" /></Button></PopoverTrigger>
             <PopoverContent align="end" className="w-64 text-xs text-muted-foreground">Coaching heuristic aid, not professional legal, financial, or regulatory advice.</PopoverContent>
           </Popover>
           <Button data-tour="tour" variant="ghost" size="sm" className="max-md:size-11 max-md:px-0" aria-label="Start tour" onClick={() => { setRightView("canvas"); setCoachOpen(true); setTour(true); }}><TourIcon className="size-4" /> <span className="max-md:sr-only">Tour</span></Button>
-          <div data-tour="scenarios" className="flex flex-wrap items-center gap-2"><ScenarioMenu /></div>
+          <div data-tour="scenarios" className="flex shrink-0 items-center gap-2"><ScenarioMenu /></div>
           <Button size="icon" variant="outline" className="size-11 md:size-8" aria-label="Settings" onClick={() => { setKey(s.apiKey); setModel(s.model); setSettings(true); }}>
             <Settings />
           </Button>
