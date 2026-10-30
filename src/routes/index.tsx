@@ -1,12 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Eye, Layers, PanelLeftClose, PanelLeftOpen, Settings } from "lucide-react";
+import { Eye, Layers, Settings, Compass, X, ChevronDown, Route as JourneyIcon, FlaskConical, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useCanvasFeedback } from "@/components/canvas/useCanvasFeedback";
+import { STAGES } from "@/lib/canvas/types";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { useCanvasStore } from "@/lib/canvas/store";
@@ -45,9 +48,11 @@ function Index() {
 
 function App() {
   const s = useCanvasStore();
-  const [tab, setTab] = useState<"chat" | "right">("chat");
-  const [rightView, setRightView] = useState<"canvas" | "journey" | "log">("canvas");
+  const mobile = useIsMobile();
+  const { activeBlock, flashing } = useCanvasFeedback();
+  const [rightView, setRightView] = useState<"canvas" | "journey" | "log" | "tests">("canvas");
   const [coachOpen, setCoachOpen] = useState(true);
+  const [mobileCoach, setMobileCoach] = useState(false);
   const [settings, setSettings] = useState(false);
   const [tour, setTour] = useState(false);
   useEffect(() => { if (!welcomeSeen()) setTour(true); }, []);
@@ -56,12 +61,16 @@ function App() {
   const [model, setModel] = useState(s.model);
 
   const viewIdx = s.viewingId ? s.versions.findIndex((v) => v.id === s.viewingId) : s.versions.length - 1;
-  const viewing = s.versions[Math.max(0, viewIdx)]!;
+  const viewing = s.versions[Math.max(0, viewIdx)];
   const readOnly = !!s.viewingId;
-  const prev = readOnly && viewIdx > 0 ? s.versions[viewIdx - 1]!.canvas : undefined;
+  const prev = readOnly && viewIdx > 0 ? s.versions[viewIdx - 1]?.canvas : undefined;
+
+  if (!viewing) return null;
+  const stage = STAGES.find((st) => st.id === s.stage);
+  const coachVisible = mobile ? mobileCoach : coachOpen;
 
   return (
-    <div className="flex h-dvh flex-col">
+    <div className="flex h-dvh flex-col overflow-hidden">
       <Toaster position="top-center" />
       <WelcomeWizard open={tour} onOpenChange={setTour} />
       <header className="flex flex-wrap items-center justify-between gap-3 border-b bg-paper px-4 py-3 lg:px-6">
@@ -81,100 +90,56 @@ function App() {
         <div className="flex gap-1.5">
           <Button data-tour="tour" variant="ghost" size="sm" onClick={() => { setRightView("canvas"); setCoachOpen(true); setTour(true); }}><TourIcon className="size-4" /> Tour</Button>
           <div data-tour="scenarios" className="flex flex-wrap items-center gap-2"><ScenarioMenu /></div>
-          <Button
-            size="icon"
-            variant="outline"
-            className="hidden size-8 lg:inline-flex"
-            aria-label={coachOpen ? "Collapse coach panel" : "Expand coach panel"}
-            title={coachOpen ? "Collapse coach panel" : "Expand coach panel"}
-            onClick={() => setCoachOpen((o) => !o)}
-          >
-            {coachOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
-          </Button>
           <Button size="icon" variant="outline" className="size-8" aria-label="Settings" onClick={() => { setKey(s.apiKey); setModel(s.model); setSettings(true); }}>
             <Settings />
           </Button>
         </div>
       </header>
 
-      <div className="border-b bg-paper px-4 py-2 lg:hidden">
-        <Tabs
-          value={tab === "chat" ? "chat" : rightView}
-          onValueChange={(v) => {
-            if (v === "chat") setTab("chat");
-            else {
-              setTab("right");
-              setRightView(v as "canvas" | "journey" | "log");
-            }
-          }}
-        >
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="chat">Coach</TabsTrigger>
-            <TabsTrigger value="canvas">Canvas</TabsTrigger>
-            <TabsTrigger value="journey">Journey</TabsTrigger>
-            <TabsTrigger value="log">Log</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-
-      <main className={cn("grid min-h-0 flex-1", coachOpen && "lg:grid-cols-[minmax(0,42fr)_minmax(0,58fr)]")}>
-        <div data-tour="coach" className={cn("min-h-0 border-r", tab !== "chat" && "hidden lg:block", !coachOpen && "lg:hidden")}>
-          <ChatPane />
-        </div>
-        <div className={cn("min-h-0 overflow-y-auto grid-paper", tab !== "right" && "hidden lg:block")}>
-          <div className="space-y-3 p-4 lg:p-6">
-            <div data-tour="tabs" className="hidden gap-1 border-b lg:flex">
-              {(["canvas", "journey", "log"] as const).map((v) => (
-                <button
-                  key={v}
-                  onClick={() => setRightView(v)}
-                  className={cn(
-                    "-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors",
-                    rightView === v ? "border-signal text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {v === "canvas" ? "Canvas" : v === "journey" ? "Journey" : "Changelog & Decisions"}
-                  {v === "log" && s.log.length > 0 && (
-                    <span className="ml-1.5 rounded-full bg-muted px-1.5 font-mono text-[10px]">{s.log.length}</span>
-                  )}
-                </button>
-              ))}
+      <main className={cn("grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[minmax(0,1fr)_40px]", coachOpen && "md:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]")}>
+        <section aria-label="Business Model Canvas workspace" className="flex min-h-0 min-w-0 flex-col grid-paper">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-paper px-4 py-3">
+            <h2 className="font-display text-base font-semibold">Business Model Canvas</h2>
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild><Button data-tour="tabs" variant="ghost" size="sm">Explore <ChevronDown className="size-3" /></Button></DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setRightView("journey")}><JourneyIcon /> Journey</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setRightView("log")}><ScrollText /> Changelog & Decisions</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { s.setDrawerOpen(true); setRightView("tests"); }}><FlaskConical /> Experiments (Test Cards)</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <div data-tour="stack"><StackBar /></div>
             </div>
-            {rightView === "journey" ? (
-              <JourneyPanel />
-            ) : rightView === "log" ? (
-              <LogPanel />
-            ) : (
-            <>
-            <div data-tour="stack"><StackBar /></div>
-            {readOnly && (
-              <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-accent px-3 py-2 text-xs text-accent-foreground">
-                <span className="flex items-center gap-2">
-                  <Eye className="size-3.5 shrink-0" /> Saved version · read-only · <em>{viewing.note}</em>
-                  {prev && <span className="text-valid">· ring = added since previous · dashed = removed</span>}
-                </span>
-                <Button variant="outline" size="sm" onClick={() => s.setViewing(null)}>
-                  Return to working canvas
-                </Button>
-              </div>
-            )}
-            <div data-tour="canvas"><CanvasGrid canvas={viewing.canvas} prev={prev} readOnly={readOnly} /></div>
-            <div className="flex flex-wrap items-center justify-between gap-3 px-1">
-            <div className="flex flex-wrap gap-4 text-[11px] text-muted-foreground">
-              <span><span className="mr-1 inline-block size-2 rounded-full bg-hypo" />Untested hypothesis</span>
-              <span><span className="mr-1 inline-block size-2 rounded-full bg-valid" />Validated with evidence</span>
-              <span><span className="mr-1 inline-block size-2 rounded-full bg-invalid" />Invalidated</span>
-            </div>
-            {!readOnly && <SuggestAllButton />}
-            </div>
-            <div data-tour="tests"><TestCards /></div>
-            </>
-            )}
           </div>
-        </div>
+          <div className="min-h-0 flex-1 overflow-y-auto p-3 md:p-4">
+            {readOnly && <div className="mb-3 flex flex-wrap items-center justify-between gap-2 border-b pb-3 text-xs text-muted-foreground"><span className="flex items-center gap-2"><Eye className="size-3.5" /> Saved version · read-only · {viewing.note}</span><Button variant="outline" size="sm" onClick={() => s.setViewing(null)}>Return to working canvas</Button></div>}
+            <div data-tour="canvas"><CanvasGrid canvas={viewing.canvas} prev={prev} readOnly={readOnly} activeBlock={activeBlock} flashing={flashing} /></div>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-[10px] text-muted-foreground">
+              <span className="max-w-64 truncate">{viewing.label}</span>
+              {!readOnly && <SuggestAllButton />}
+            </div>
+          </div>
+        </section>
+        <aside data-tour="coach" aria-label="Socratic Coach" className={cn("min-h-0 min-w-0 border-l bg-paper", mobile ? (mobileCoach ? "fixed inset-x-0 bottom-0 z-40 flex h-[60dvh] max-h-[60dvh] flex-col rounded-t-lg border-t shadow-card" : "hidden") : (coachOpen ? "flex flex-col" : "block"))}>
+          {coachVisible ? <>
+            <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
+              <div className="min-w-0"><h2 className="flex items-center gap-1.5 text-sm font-semibold"><Compass className="size-4 text-signal" /> Socratic Coach</h2><p className="text-[10px] text-muted-foreground">Stage {s.stage} of 5 · {stage?.short}</p></div>
+              <Button variant="ghost" size="icon" className="size-7" aria-label="Collapse coach panel" title="Collapse coach panel" onClick={() => mobile ? setMobileCoach(false) : setCoachOpen(false)}><X className="size-4" /></Button>
+            </div>
+            <div className="min-h-0 flex-1"><ChatPane /></div>
+          </> : <Button variant="ghost" className="h-full w-full flex-col justify-start gap-3 rounded-none px-1 py-4" aria-label="Expand coach panel" onClick={() => setCoachOpen(true)}><Compass className="size-4 text-signal" /><span className="text-xs [writing-mode:vertical-rl]">Coach</span></Button>}
+        </aside>
       </main>
+      <div className="flex items-center justify-between border-t bg-paper px-3 py-2 md:hidden"><span className="text-[10px] text-muted-foreground">Stage {s.stage} of 5 · {stage?.short}</span><Button size="sm" variant="outline" onClick={() => setMobileCoach(true)}><Compass className="size-4" /> Coach</Button></div>
+      <Dialog open={rightView !== "canvas"} onOpenChange={(open) => { if (!open) setRightView("canvas"); }}>
+        <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-4xl">
+          <DialogHeader><DialogTitle>{rightView === "journey" ? "Business model journey" : rightView === "log" ? "Changelog & Decisions" : "Experiments"}</DialogTitle><DialogDescription>{s.scenarioName}</DialogDescription></DialogHeader>
+          {rightView === "journey" ? <JourneyPanel /> : rightView === "log" ? <LogPanel /> : <div data-tour="tests"><TestCards /></div>}
+        </DialogContent>
+      </Dialog>
 
-      <footer className="border-t bg-paper px-4 py-2 text-center text-[11px] text-muted-foreground">
+      <footer className="hidden border-t bg-paper px-4 py-2 text-center md:block text-[11px] text-muted-foreground">
         Coaching heuristic only. Does not replace professional legal, financial, or regulatory counsel.
       </footer>
 

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { GitBranch, GitCommitHorizontal, History, Download, Layers, CircleHelp, ArrowRight, Eye } from "lucide-react";
+import { GitBranch, GitCommitHorizontal, History, Download, Layers, CircleHelp, ArrowRight, Eye, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -45,74 +45,25 @@ export function StackBar() {
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Layers className="size-4 text-signal" />
-          <span className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
-            Version history: <span className="text-foreground">{s.versions.length} version{s.versions.length > 1 ? "s" : ""}</span>
-          </span>
-          <Button variant="ghost" size="icon" className="size-7" aria-label="Snapshots or pivots?" title="Snapshots or pivots?" onClick={() => setHelp(true)}><CircleHelp /></Button>
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          <Button variant="outline" size="sm" onClick={() => setTimeline(true)}>
-            <History /> View history
-          </Button>
-          <Button variant="outline" size="sm" disabled={reviewing} title="Keep a checkpoint of this model and continue refining it" onClick={() => setMode("commit")}>
-            <GitCommitHorizontal /> Save snapshot
-          </Button>
-          <Button variant="outline" size="sm" disabled={reviewing} title="Keep this model and start a working copy for a new direction" onClick={() => setMode("pivot")}>
-            <GitBranch /> Fork pivot
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm">
-                <Download /> Export
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => download("canvasstack.json", exportJson(s), "application/json")}>
-                Full stack as JSON
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => download("canvasstack.md", exportMarkdown(s), "text/markdown")}>
-                Markdown summary
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      <div className="grid gap-2 border-l-2 border-signal pl-3 text-xs text-muted-foreground sm:grid-cols-2">
-        <p><span className="font-medium text-foreground">Snapshot:</span> keep a checkpoint, then refine the same model.</p>
-        <p><span className="font-medium text-foreground">Pivot:</span> keep the current model, then explore a new direction in a copy.</p>
-      </div>
-
-      <div className="flex items-end gap-1 overflow-x-auto pb-1" role="group" aria-label="Canvas versions">
-        {s.versions.map((v, idx) => {
-          const active = v.id === activeId;
-          const isHead = v.id === headId;
-          return (
-            <Button
-              key={v.id}
-              variant="ghost"
-              aria-pressed={active}
-              aria-label={`${v.label} · ${isHead ? "Working canvas" : "View read-only snapshot"}`}
-              onClick={() => s.setViewing(isHead ? null : v.id)}
-              className={cn(
-                "relative h-auto shrink-0 flex-col items-start gap-0 rounded-b-none rounded-t-md border border-b-0 px-3 py-2 text-left transition-all",
-                active ? "bg-card pb-3 shadow-card" : "bg-muted text-muted-foreground hover:bg-secondary",
-              )}
-            >
-              <span className="block font-mono text-[10px] uppercase tracking-wider">
-                {isHead ? "Working · editable" : "Saved · read-only"}
-              </span>
-              <span className="block max-w-48 truncate text-xs font-medium">{v.label}</span>
-              {active && <span className="absolute inset-x-2 top-0 h-0.5 rounded-full bg-signal" />}
-            </Button>
-          );
-        })}
-      </div>
-      <p className="text-xs text-muted-foreground">{reviewing ? "Reviewing a saved version. Return to the working canvas to make changes or start a pivot." : "Select an earlier version to revisit it without changing your working canvas."}</p>
+    <div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild><Button variant="outline" size="sm"><Layers className="size-4" /> Versions <ChevronDown className="size-3" /></Button></DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="max-h-[70dvh] w-72 overflow-y-auto">
+          <DropdownMenuLabel>Versions · {s.versions.length}</DropdownMenuLabel>
+          {s.versions.map((v) => <DropdownMenuItem key={v.id} onClick={() => s.setViewing(v.id === headId ? null : v.id)} className={cn("flex-col items-start", activeId === v.id && "bg-accent")}>
+            <span className="max-w-full truncate font-medium">{v.label}</span><span className="text-xs text-muted-foreground">{v.id === headId ? "Working · editable" : "Saved · read-only"}</span>
+          </DropdownMenuItem>)}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setTimeline(true)}><History /> View history</DropdownMenuItem>
+          <DropdownMenuItem disabled={reviewing} onClick={() => setMode("commit")}><GitCommitHorizontal /> Save snapshot</DropdownMenuItem>
+          <DropdownMenuItem disabled={reviewing} onClick={() => setMode("pivot")}><GitBranch /> Fork pivot</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setHelp(true)}><CircleHelp /> Snapshots or pivots?</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel>Export</DropdownMenuLabel>
+          <DropdownMenuItem onClick={() => download("canvasstack.json", exportJson(s), "application/json")}><Download /> Full stack as JSON</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => download("canvasstack.md", exportMarkdown(s), "text/markdown")}><Download /> Markdown summary</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <Dialog open={help} onOpenChange={setHelp}>
         <DialogContent>
@@ -123,7 +74,7 @@ export function StackBar() {
           <dl className="space-y-4 text-sm">
             <div><dt className="flex items-center gap-2 font-semibold"><GitCommitHorizontal className="size-4 text-signal" />Save snapshot · same direction</dt><dd className="mt-1 text-muted-foreground">Keep a checkpoint after interviews or tests, then continue refining the model. For example: update your price after testing willingness to pay.</dd></div>
             <div><dt className="flex items-center gap-2 font-semibold"><GitBranch className="size-4 text-signal" />Fork pivot · new direction</dt><dd className="mt-1 text-muted-foreground">Name a change in direction, such as a new customer segment or revenue model. The new copy keeps your notes and highlights blocks expected to change; you rewrite them. Your reason appears in Log and Journey.</dd></div>
-            <div><dt className="flex items-center gap-2 font-semibold"><History className="size-4 text-signal" />Can I go back?</dt><dd className="mt-1 text-muted-foreground">Yes — select any saved version above or in View history to review it. Earlier versions are read-only; returning does not undo edits or replace your working canvas. New snapshots and pivots start from the working canvas, not an earlier version.</dd></div>
+            <div><dt className="flex items-center gap-2 font-semibold"><History className="size-4 text-signal" />Can I go back?</dt><dd className="mt-1 text-muted-foreground">Yes — select any saved version in Versions or View history to review it. Earlier versions are read-only; returning does not undo edits or replace your working canvas. New snapshots and pivots start from the working canvas, not an earlier version.</dd></div>
           </dl>
           <DialogFooter><Button onClick={() => setHelp(false)}>Got it</Button></DialogFooter>
         </DialogContent>
