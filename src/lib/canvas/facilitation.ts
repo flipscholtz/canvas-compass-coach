@@ -25,6 +25,9 @@ export function facilitate(text: string, value: string, question: string): strin
 /** Models can ignore formatting instructions; keep a usable, focused turn. */
 export function ensureFacilitatorQuestion(reply: string, userText: string, stage: number, block?: BlockId): string {
   if (reply.trim().endsWith("?") && (reply.match(/\?/g)?.length ?? 0) === 1) return reply;
+  // Several questions: keep the coach's own first (context-aware) question rather than a generic one.
+  const firstQ = reply.indexOf("?");
+  if (firstQ > 0) return reply.slice(0, firstQ + 1).trim();
   const question = block ? FOCUS_QUESTIONS[block] : stage === 1
     ? "Which recent customer experience shows that this pain matters?"
     : stage === 5 ? "What result from a small test would change your decision?"
