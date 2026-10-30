@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-30",
+    title: "Quieter coach actions",
+    changes: ["Riskiest assumption, Coherence check and Challenge VP are now small outlined pills in one scrollable row above the chat box, each with a one-line tooltip (long-press on mobile).", "When an action becomes relevant the coach suggests it in one sentence and that pill is highlighted until you use it or the chat moves on.", "Skip is now a 'Not sure yet? Skip for now' link that records the topic as an untested assumption."],
+  },
+  {
+    date: "2026-10-30",
     title: "Canvas-first workspace",
     changes: ["The canvas now takes two-thirds of the desktop workspace, with a smaller coach that collapses to a slim tab; on mobile the coach opens over only the bottom 60% of the screen.", "Explore holds Journey, Changelog & Decisions and Experiments; Versions gathers history, snapshots, pivots, exports and saved versions.", "The discussed block is highlighted, changed stickies briefly glow, and coach drafts show inline confirmations. Stage progress is compact and chat has one scrolling message list."],
   },

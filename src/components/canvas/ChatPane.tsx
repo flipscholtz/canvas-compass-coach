@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Compass, AlertTriangle, Loader2, RotateCcw, MoreHorizontal, Check } from "lucide-react";
+import { ArrowUp, Compass, AlertTriangle, Loader2, RotateCcw, Check, Target, Scale, Swords } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCanvasStore } from "@/lib/canvas/store";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { pickRiskiest } from "@/lib/canvas/assumptions";
+import { filledBlocks } from "@/lib/canvas/patterns";
 import { changedNotes } from "./useCanvasFeedback";
 import { coachTurn, STEPS } from "@/lib/canvas/coach";
 import { useRiskiest } from "./useRiskiest";
@@ -17,11 +19,14 @@ import { coachHelp } from "@/lib/canvas/help";
 import { BLOCKS } from "@/lib/canvas/types";
 
 const QUICK = [
-  { label: "Identify My Riskiest Assumption", key: "risk" },
-  { label: "Check coherence", key: "coherence" },
-  { label: "Challenge my value proposition", key: "vp" },
-  { label: "Skip this question", key: "skip" },
+  { label: "Identify My Riskiest Assumption", short: "Riskiest assumption", key: "risk", icon: Target, hint: "Riskiest assumption: finds the untested belief most likely to sink the venture and drafts a Test Card for it.", suggest: "You've covered enough ground — try “Riskiest assumption” to pick what to test first." },
+  { label: "Check coherence", short: "Coherence check", key: "coherence", icon: Scale, hint: "Coherence check: checks whether your canvas blocks fit together, such as your price vs your customer segment.", suggest: "With several blocks filled in, a “Coherence check” will show whether they fit together." },
+  { label: "Challenge my value proposition", short: "Challenge VP", key: "vp", icon: Swords, hint: "Challenge VP: the coach pushes back on your value proposition the way a sceptical customer would.", suggest: "You have a customer and a value proposition — tap “Challenge VP” to stress-test it." },
+  { label: "Skip this question", short: "Skip", key: "skip", icon: Target, hint: "", suggest: "" },
 ] as const;
+type QuickKey = (typeof QUICK)[number]["key"];
+const ACTIONS = QUICK.filter((q) => q.key !== "skip");
+const MOVE_ON = 4; // messages after a suggestion before it fades
 
 export function ChatPane() {
   const s = useCanvasStore();
@@ -37,6 +42,26 @@ export function ChatPane() {
   const head = s.versions.at(-1)?.canvas;
   const serverAi = useServerAi();
   const live = !!s.apiKey || serverAi;
+  const [used, setUsed] = useState<Set<QuickKey>>(new Set());
+  const longPress = useRef<{ t?: ReturnType<typeof setTimeout>; fired: boolean }>({ fired: false });
+
+  // Contextual suggestion: first relevant, unused action wins; only one at a time.
+  const eligible: QuickKey | null = !head ? null
+    : !used.has("risk") && s.stage >= 3 && !!pickRiskiest(head, s.cards) ? "risk"
+    : !used.has("coherence") && filledBlocks(head).length >= 4 ? "coherence"
+    : !used.has("vp") && head.segments.length > 0 && head.valueProps.length > 0 ? "vp"
+    : null;
+  const eligibleText = eligible ? QUICK.find((q) => q.key === eligible)!.suggest : "";
+  const suggestedAt = eligible ? s.messages.map((m) => m.role === "coach" && m.text === eligibleText).lastIndexOf(true) : -1;
+  const suggested = eligible && suggestedAt >= 0 && s.messages.length - 1 - suggestedAt <= MOVE_ON ? eligible : null;
+  useEffect(() => {
+    if (!eligible || busy || suggestedAt >= 0 || s.viewingId) return;
+    s.pushMessage({ role: "coach", text: eligibleText });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eligible, busy, suggestedAt]);
+  useEffect(() => {
+    if (eligible && suggestedAt >= 0 && !suggested) setUsed((u) => new Set(u).add(eligible));
+  }, [eligible, suggestedAt, suggested]);
 
   useEffect(() => {
     const list = endRef.current?.parentElement;
@@ -104,7 +129,8 @@ export function ChatPane() {
     }
   }
 
-  function quick(key: (typeof QUICK)[number]["key"]) {
+  function quick(key: QuickKey) {
+    setUsed((u) => new Set(u).add(key));
     if (key === "risk") {
       identifyRiskiest();
       return;
@@ -128,11 +154,13 @@ export function ChatPane() {
           : "You haven't stated a value proposition yet. What job is your customer trying to get done?",
       });
     } else {
+      const cur = STEPS[s.step];
+      if (cur?.block) s.addItems([{ block: cur.block, text: `Not yet known — to test: ${cur.question.split("?")[0]}?` }]);
       const next = Math.min(s.step + 1, STEPS.length - 1);
       const step = STEPS[next];
       if (!step) return;
       s.setProgress(next, step.stage);
-      s.pushMessage({ role: "coach", text: `Parking that. ${step.question}` });
+      s.pushMessage({ role: "coach", text: `Parking that${cur?.block ? ` — noted as an untested assumption in ${BLOCKS[cur.block].title}` : ""}. ${step.question}` });
     }
   }
 
@@ -218,7 +246,38 @@ export function ChatPane() {
         <div ref={endRef} />
       </div>
 
-      <div className="shrink-0 border-t px-3 py-3">
+      <div className="shrink-0 space-y-2 border-t px-3 py-2.5">
+        <TooltipProvider delayDuration={300}>
+          <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none]" aria-label="Coach actions">
+            {ACTIONS.map((q) => {
+              const on = suggested === q.key;
+              const Icon = q.icon;
+              return (
+                <Tooltip key={q.key}>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={q.label}
+                      disabled={busy}
+                      onTouchStart={() => { longPress.current.fired = false; longPress.current.t = setTimeout(() => { longPress.current.fired = true; toast(q.hint); }, 500); }}
+                      onTouchEnd={() => clearTimeout(longPress.current.t)}
+                      onClick={(e) => { if (longPress.current.fired) { e.preventDefault(); longPress.current.fired = false; return; } quick(q.key); }}
+                      className={cn(
+                        "relative inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors disabled:opacity-50",
+                        on ? "animate-pulse border-signal bg-signal text-signal-foreground ring-2 ring-signal/25" : "border-border bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )}
+                    >
+                      <Icon className="size-3" />{q.short}
+                      {on && <span className="sr-only">(Suggested)</span>}
+                      {on && <span aria-hidden className="absolute -right-0.5 -top-0.5 size-2 rounded-full border border-background bg-signal-foreground" />}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-60 text-xs">{q.hint}</TooltipContent>
+                </Tooltip>
+              );
+            })}
+          </div>
+        </TooltipProvider>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -238,16 +297,16 @@ export function ChatPane() {
             }}
             aria-label="Message the coach"
             placeholder="Answer the coach…"
-            className="min-h-[72px] resize-none bg-background pr-12 pb-9"
+            className="min-h-[64px] resize-none bg-background pr-12"
           />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild><Button type="button" variant="ghost" size="icon" className="absolute bottom-2 left-2 size-7" aria-label="Coach actions" title="Coach actions" disabled={busy}><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
-            <DropdownMenuContent align="start">{QUICK.map((q) => <DropdownMenuItem key={q.key} disabled={busy} onClick={() => quick(q.key)}>{q.label}</DropdownMenuItem>)}</DropdownMenuContent>
-          </DropdownMenu>
+
           <Button aria-label="Send message" type="submit" size="icon" disabled={busy || !input.trim()} className="absolute bottom-2 right-2 size-8">
             <ArrowUp />
           </Button>
         </form>
+        <button type="button" disabled={busy} onClick={() => quick("skip")} className="text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline disabled:opacity-50">
+          Not sure yet? Skip for now
+        </button>
       </div>
     </section>
   );
