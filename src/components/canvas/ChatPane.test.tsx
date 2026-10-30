@@ -18,7 +18,7 @@ it("renders an in-chat fallback, allows input and retries the same user turn", a
   vi.mocked(llmTurn).mockRejectedValueOnce(new Error("bad response")).mockResolvedValueOnce({ reply: "Which area are your homeowners in?", additions: [], assumptions: [], flags: [], stage: 1 });
   render(<ChatPane />);
   const input = screen.getByPlaceholderText(/Answer the coach/);
-  fireEvent.change(input, { target: { value: "Can you help me find some data?" } });
+  fireEvent.change(input, { target: { value: "We offer domestic cleaning to homeowners" } });
   fireEvent.submit(input.closest("form") as HTMLFormElement);
   await screen.findByText(/lost my train of thought/);
   expect(input).toBeEnabled();
@@ -35,7 +35,7 @@ it("releases a stalled chat at 30 seconds and ignores its late result", async ()
   vi.mocked(llmTurn).mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
   render(<ChatPane />);
   const input = screen.getByPlaceholderText(/Answer the coach/);
-  fireEvent.change(input, { target: { value: "help" } });
+  fireEvent.change(input, { target: { value: "We offer domestic cleaning to homeowners" } });
   fireEvent.submit(input.closest("form") as HTMLFormElement);
   expect(screen.getByRole("status")).toHaveTextContent("Coach is thinking…");
   await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
@@ -45,4 +45,29 @@ it("releases a stalled chat at 30 seconds and ignores its late result", async ()
   await act(async () => { finish?.({ reply: "Late reply", stage: 5, additions: [], assumptions: [], flags: [] }); });
   expect(screen.queryByText("Late reply")).not.toBeInTheDocument();
   expect(useCanvasStore.getState().stage).toBe(1);
+});
+
+it("helps without an AI call and saves the proposed note/card only after Yes", async () => {
+  render(<ChatPane />);
+  const input = screen.getByPlaceholderText(/Answer the coach/);
+  fireEvent.change(input, { target: { value: "Can you help me find some data?" } });
+  fireEvent.submit(input.closest("form") as HTMLFormElement);
+  await screen.findByRole("button", { name: "Yes", exact: true });
+  expect(llmTurn).not.toHaveBeenCalled();
+  expect(useCanvasStore.getState().cards).toHaveLength(0);
+  fireEvent.click(screen.getByRole("button", { name: "Yes", exact: true }));
+  expect(useCanvasStore.getState().cards).toHaveLength(1);
+  expect(useCanvasStore.getState().versions.at(-1)?.canvas.segments[0]?.status).toBe("hypothesis");
+  expect(screen.getByText(/Saved as untested/)).toBeInTheDocument();
+});
+
+it("Not now leaves the canvas and cards untouched", async () => {
+  render(<ChatPane />);
+  const input = screen.getByPlaceholderText(/Answer the coach/);
+  fireEvent.change(input, { target: { value: "I don't know" } });
+  fireEvent.submit(input.closest("form") as HTMLFormElement);
+  fireEvent.click(await screen.findByRole("button", { name: "Not now" }));
+  expect(useCanvasStore.getState().cards).toHaveLength(0);
+  expect(useCanvasStore.getState().versions.at(-1)?.canvas.segments).toEqual([]);
+  expect(input).toBeEnabled();
 });
