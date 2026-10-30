@@ -122,13 +122,14 @@ function App() {
           </div>
         </section>
         <aside data-tour="coach" aria-label="Socratic Coach" className={cn("min-h-0 min-w-0 border-l bg-paper", mobile ? (mobileCoach ? "fixed inset-x-0 bottom-0 z-40 flex h-[60dvh] max-h-[60dvh] flex-col rounded-t-lg border-t shadow-card" : "hidden") : (coachOpen ? "flex flex-col" : "block"))}>
-          {coachVisible ? <>
+          <div className={cn("flex min-h-0 flex-1 flex-col", !coachVisible && "hidden")}>
             <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
               <div className="min-w-0"><h2 className="flex items-center gap-1.5 text-sm font-semibold"><Compass className="size-4 text-signal" /> Socratic Coach</h2><p className="text-[10px] text-muted-foreground">Stage {s.stage} of 5 · {stage?.short}</p></div>
               <Button variant="ghost" size="icon" className="size-7" aria-label="Collapse coach panel" title="Collapse coach panel" onClick={() => mobile ? setMobileCoach(false) : setCoachOpen(false)}><X className="size-4" /></Button>
             </div>
             <div className="min-h-0 flex-1"><ChatPane /></div>
-          </> : <Button variant="ghost" className="h-full w-full flex-col justify-start gap-3 rounded-none px-1 py-4" aria-label="Expand coach panel" onClick={() => setCoachOpen(true)}><Compass className="size-4 text-signal" /><span className="text-xs [writing-mode:vertical-rl]">Coach</span></Button>}
+          </div>
+          {!coachVisible && !mobile && <Button variant="ghost" className="h-full w-full flex-col justify-start gap-3 rounded-none px-1 py-4" aria-label="Expand coach panel" onClick={() => setCoachOpen(true)}><Compass className="size-4 text-signal" /><span className="text-xs [writing-mode:vertical-rl]">Coach</span></Button>}
         </aside>
       </main>
       <div className="flex items-center justify-between border-t bg-paper px-3 py-2 md:hidden"><span className="text-[10px] text-muted-foreground">Stage {s.stage} of 5 · {stage?.short}</span><Button size="sm" variant="outline" onClick={() => setMobileCoach(true)}><Compass className="size-4" /> Coach</Button></div>

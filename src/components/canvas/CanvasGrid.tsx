@@ -184,7 +184,7 @@ function Note({ block, item, readOnly, isNew }: { block: BlockId; item: CanvasIt
         <Textarea value={text} onChange={(e) => setText(e.target.value)} className="min-h-16 text-sm" />
         <div className="grid grid-cols-3 gap-1">
           {(["hypothesis", "validated", "invalidated"] as ItemStatus[]).map((st) => (
-            <button
+            <Button variant="outline" size="sm"
               key={st}
               onClick={() => {
                 if (st === "hypothesis") { updateItem(block, item.id, { status: st }); setVerdict(null); }
