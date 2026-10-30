@@ -1,4 +1,5 @@
 import { BLOCKS, BLOCK_ORDER, type BlockId, type Canvas, type ChatMessage, type HelpOffer } from "./types";
+import { facilitate } from "./facilitation";
 
 export function helpIntent(text: string): "data" | "example" | "clarify" | null {
   if (/\b(data|statistics|stats|research|evidence|sources?)\b/i.test(text) && /\?|\b(help|find|where|look|give|need|can you)\b/i.test(text)) return "data";
@@ -56,11 +57,11 @@ export function coachHelp(opts: { text: string; canvas: Canvas; history?: ChatMe
       ? "This week: contact 5 relevant suppliers, workers or potential partners for short calls about availability, terms and recent examples. Treat this as exploratory evidence, not proof of scale."
       : `This week: run 5 short interviews with ${cleaning ? "homeowners in your target area" : "target customers"}. ${example.charAt(0).toUpperCase() + example.slice(1)}. Record recent behaviour, not polite interest; five interviews won't estimate a whole market.`;
   const answer = intent === "data"
-    ? `Yes, I can help you plan the search.\n\nI can't look this up live, but here's where I'd look: a national statistics office’s census, household or labour-force surveys; industry or trade association reports; job and service marketplaces; Google Trends; competitor websites and reviews. Check the date, location and who was counted. Employment totals are not household hiring rates, and search interest or reviews are signals, not market-size estimates.\n\nSearch phrases (replace the location):\n${searches.map((s) => `• ${s}`).join("\n")}`
-    : `${intent === "example" ? "Sure — here’s an illustrative example, not a fact about your venture." : "Of course — we can work through the unknown together."}\n\nFor ${BLOCKS[block].title}, ${example}. You don't need to guess or claim evidence you don't have.`;
+    ? `I can't look this up live. Try census/household surveys, trade reports, marketplaces, Google Trends and competitor reviews; check dates and locations.\nSearch:\n${searches.map((s) => `• ${s}`).join("\n")}\nThis week: 5 short interviews about recent hiring or purchases, not market-wide proof.`
+    : `For ${BLOCKS[block].title}, ${example}; this is an illustrative tip, not evidence about your venture.`;
   const question = cleaning ? "Which neighbourhood could you reach five homeowners in this week?" : guide.question;
   return {
-    reply: `${answer}\n\n${firstHand}\n\nProposed untested assumption — ${BLOCKS[block].title}: “${claim}”. I can save it and draft a Test Card if you choose Yes below.\n\n${question}`,
+    reply: facilitate(opts.text, answer, question),
     offer: {
       block, claim,
       card: {
