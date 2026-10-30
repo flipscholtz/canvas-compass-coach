@@ -255,7 +255,7 @@ export function ChatPane() {
 
       <div className="shrink-0 space-y-2 border-t px-3 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
         <TooltipProvider delayDuration={300}>
-          <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none]" aria-label="Coach actions">
+          <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none]" data-tour="actions" aria-label="Coach actions">
             {ACTIONS.map((q) => {
               const on = suggested === q.key;
               const Icon = q.icon;

@@ -83,7 +83,7 @@ function App() {
   const coachVisible = mobile ? mobileCoach : coachOpen;
   const stageMenu = (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild><button type="button" className="inline-flex min-h-11 items-center gap-1 text-xs text-muted-foreground md:min-h-0 md:text-[10px]" aria-label="Show all stages">Stage {s.stage} of 5 · {stage?.short} <ChevronDown className="size-3" /></button></DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild><button type="button" data-tour="stage" className="inline-flex min-h-11 items-center gap-1 text-xs text-muted-foreground md:min-h-0 md:text-[10px]" aria-label="Show all stages">Stage {s.stage} of 5 · {stage?.short} <ChevronDown className="size-3" /></button></DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {STAGES.map((st) => <DropdownMenuItem key={st.id} className={cn("min-h-11 md:min-h-0", st.id === s.stage && "font-semibold text-signal")}>{st.id}. {st.label}{st.id === s.stage ? " · current" : ""}</DropdownMenuItem>)}
       </DropdownMenuContent>
@@ -110,7 +110,7 @@ function App() {
         </div>
         <div className="flex min-w-0 max-w-full items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
           <Popover>
-            <PopoverTrigger asChild><Button size="icon" variant="ghost" className="size-11 md:size-8" aria-label="About this advice"><Info className="size-4" /></Button></PopoverTrigger>
+            <PopoverTrigger asChild><Button size="icon" variant="ghost" data-tour="info" className="size-11 md:size-8" aria-label="About this advice"><Info className="size-4" /></Button></PopoverTrigger>
             <PopoverContent align="end" className="w-64 text-xs text-muted-foreground">Coaching heuristic aid, not professional legal, financial, or regulatory advice.</PopoverContent>
           </Popover>
           <Button data-tour="tour" variant="ghost" size="sm" className="max-md:size-11 max-md:px-0" aria-label="Start tour" onClick={() => { setRightView("canvas"); setCoachOpen(true); setTour(true); }}><TourIcon className="size-4" /> <span className="max-md:sr-only">Tour</span></Button>
