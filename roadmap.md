@@ -5,3 +5,4 @@
 - [x] Test 30-second failures and free-text requests; verify the reported conversation in the app.
 - [x] Add contextual research and clarification help with explicit assumption/Test Card consent.
 - [x] Test and verify help guidance, Yes / Not now, and persistence in the app.
+- [ ] Apply facilitator-style coaching to live, offline and help replies; test and verify the conversation.
