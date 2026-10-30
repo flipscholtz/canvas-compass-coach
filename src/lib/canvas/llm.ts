@@ -1,6 +1,7 @@
 import { stripBelievePrefix } from "./assumptions";
 import { serverChat } from "./llm.functions";
 import { parseCoachResponse } from "./chat-recovery";
+import { FACILITATOR_PROMPT, ensureFacilitatorQuestion } from "./facilitation";
 
 type Msg = { role: "system" | "user" | "assistant"; content: string };
 
@@ -33,17 +34,18 @@ async function chat(apiKey: string, model: string, messages: Msg[], signal?: Abo
 import { type Assumption, BLOCK_ORDER, type BlockId, type Canvas, type ChatMessage, type Stage } from "./types";
 
 const SYSTEM = `You are CanvasStack, a Socratic venture coach using Osterwalder's Business Model Canvas and David J. Bland's Testing Business Ideas.
+${FACILITATOR_PROMPT}
 Rules:
-1. Ask exactly ONE focused question per reply. Never fill the canvas just because asked; challenge assumptions.
-2. Reject vague customer segments (e.g. "small businesses"): probe vertical, company size, and who owns the budget.
+1. Ask exactly ONE focused question per reply. Draft what the founder supplied, never answers they did not give.
+2. Accept vague customer segments (e.g. "small businesses") as a provisional draft, then ask for ONE missing detail such as vertical, size or budget owner.
 3. Enforce cross-block coherence: if a Value Proposition implies capabilities missing from Key Resources/Activities/Costs, flag it.
 4. Only add canvas items the founder actually stated, phrased as concise hypotheses.
 5. Surface 1-2 underlying assumptions embedded in the founder's latest statement, each classified as desirability, feasibility or viability. Phrase each as a clause completing "We believe that ..." (lower-case start, no trailing period). Never answer for the founder; reveal what they take for granted.
 6. Open with Customer Segments: who is this for and what job or pain do they have. Follow the Mom Test: ask "how do you know?" (past behaviour, evidence) before ever asking about product features or solutions.
 7. Capture every concrete fact the founder gives (prices, amounts, numbers, named partners) as an addition in the matching block, even if it is not the block being discussed (e.g. "R2000 a month" goes to revenue).
-8. If you decline a request or the message is off-topic, return empty additions and assumptions.
+8. Off-topic requests alone are not venture facts; engage helpfully without fabricating additions or underlying assumptions.
 9. Every message needs a nonempty, helpful reply, including questions, requests for data, clarification, "help" and "ok". These are not automatically answers or venture facts: do not add them to the canvas or advance the stage. Clarify the current question or help with the request first. For data requests, suggest credible sources and how to check relevance, never invent statistics or claim you searched the web; ask which country or area matters if unknown.
-Stages: 1 Intake, 2 Desirability (segments, value props, channels, relationships), 3 Feasibility (activities, resources, partners), 4 Viability (revenue, costs), 5 Test Cards.
+Stages: 1 Intake, 2 Desirability (segments, value props, channels, relationships), 3 Feasibility (activities, resources, partners), 4 Viability (revenue, costs), 5 Experiments. Never move backwards or skip a stage. Keep the current stage when asking permission to move on; advance only after agreement.
 Respond ONLY with JSON: {"reply": string, "stage": 1-5, "additions": [{"block": one of ${BLOCK_ORDER.join("|")}, "text": string}], "assumptions": [{"lens": "desirability"|"feasibility"|"viability", "text": string}], "flags": [string]}`;
 
 export interface LlmResult {
@@ -59,6 +61,7 @@ export async function llmTurn(opts: {
   model: string;
   canvas: Canvas;
   history: ChatMessage[];
+  stage?: Stage;
   signal?: AbortSignal;
 }): Promise<LlmResult> {
   const canvasSummary = Object.fromEntries(
@@ -67,6 +70,7 @@ export async function llmTurn(opts: {
   const content = await chat(opts.apiKey, opts.model, [
         { role: "system", content: SYSTEM },
         { role: "system", content: `Current canvas JSON: ${JSON.stringify(canvasSummary)}` },
+        { role: "system", content: `Current stage: ${opts.stage ?? 1}. Use the conversation to identify the active block and any pending invitation to move on.` },
         ...opts.history.slice(-14).map((m) => ({
           role: (m.role === "coach" ? "assistant" : "user") as Msg["role"],
           content: m.text,
@@ -75,7 +79,7 @@ export async function llmTurn(opts: {
   const parsed = parseCoachResponse(content);
   const stage = Math.min(5, Math.max(1, Number(parsed.stage) || 1)) as Stage;
   return {
-    reply: String(parsed.reply ?? "Tell me more."),
+    reply: ensureFacilitatorQuestion(parsed.reply, [...opts.history].reverse().find((m) => m.role === "user")?.text ?? "Let's continue", opts.stage ?? stage, parsed.additions[0]?.block as BlockId | undefined),
     stage,
     additions: (Array.isArray(parsed.additions) ? parsed.additions : []).filter(
       (a: { block: string; text: string }) => BLOCK_ORDER.includes(a.block as BlockId) && a.text,

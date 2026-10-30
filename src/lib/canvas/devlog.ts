@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-30",
+    title: "Coach leads like a workshop facilitator",
+    changes: ["Live and offline replies reflect your words, add useful BMC guidance and end with one focused question.", "Partial answers become provisional drafts; help stays conversational and stage transitions ask permission before moving on."],
+  },
+  {
+    date: "2026-10-30",
     title: "Practical help when evidence is missing",
     changes: ["Data requests now get source types, three search phrases and a cheap first-hand test for this week; the coach clearly says it cannot browse live.", "Examples, clarification and ‘I don't know’ receive practical guidance and one follow-up question.", "Yes / Not now lets you choose whether to record the proposed untested assumption and create a Test Card; nothing is added without consent."],
   },

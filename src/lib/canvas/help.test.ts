@@ -17,12 +17,12 @@ describe("practical help", () => {
   it("gives three searches, honest source guidance and five first-hand interviews for cleaning", () => {
     const { reply, offer } = help();
     expect(reply).toContain("I can't look this up live");
-    expect(reply).toContain("household or labour-force surveys");
+    expect(reply).toContain("household surveys");
     expect(reply).toContain("Google Trends");
-    expect(reply).toContain("competitor websites and reviews");
+    expect(reply).toContain("competitor reviews");
     expect(reply.match(/^• /gm)).toHaveLength(3);
     expect(reply).toContain("5 short interviews");
-    expect(reply).toContain("won't estimate a whole market");
+    expect(reply).toContain("not market-wide proof");
     expect(reply.match(/\?/g)).toHaveLength(1);
     expect(offer.block).toBe("segments");
     expect(offer.claim).toBe("homeowners in our target area already hire and pay domestic workers for cleaning");

@@ -1,6 +1,7 @@
 import { extractAssumptions } from "./assumptions";
 import { coachHelp } from "./help";
-import { type Assumption, BLOCKS, type BlockId, type Canvas, type Stage, type TestCard, uid } from "./types";
+import { facilitate, FOCUS_QUESTIONS } from "./facilitation";
+import { type Assumption, BLOCKS, type BlockId, type Canvas, type ChatMessage, type Stage, type TestCard, uid } from "./types";
 
 /** Scripted Socratic path through the canvas (one question per step). */
 export interface Step {
@@ -20,25 +21,25 @@ export const STEPS: Step[] = [
     block: null,
     stage: 1,
     question:
-      "How do you know? When did you last see one of them struggle with this, and what did they do about it — or pay — to cope? Talk about what happened, not what you plan to build.",
+      "How do you know this pain matters from their recent behaviour?",
   },
   {
     block: "segments",
     stage: 2,
     question:
-      "Who exactly is your first customer segment? Name the role, the industry vertical and the company or household size — and who controls the budget.",
+      "Which specific customer group would you start with?",
   },
   {
     block: "valueProps",
     stage: 2,
     question:
-      "What job does that segment hire you for? Describe the gain you create or the pain you relieve — in their words, not yours.",
+      "What pain does that segment want relieved, in their own words?",
   },
   {
     block: "channels",
     stage: 2,
     question:
-      "Where does that buyer already go to discover solutions like yours? Which channels will reach them first?",
+      "Where did that buyer discover their last solution?",
   },
   {
     block: "relationships",
@@ -50,30 +51,30 @@ export const STEPS: Step[] = [
     block: "keyActivities",
     stage: 3,
     question:
-      "Moving backstage. What are the two or three activities you must perform brilliantly for that value proposition to actually work?",
+      "Which delivery activity needs to work reliably first?",
   },
   {
     block: "keyResources",
     stage: 3,
     question:
-      "Which resources are indispensable — people, data, IP, capital, licences? Be honest about what you already have versus what you'd need.",
+      "Which essential resource do you still need to secure?",
   },
   {
     block: "keyPartners",
     stage: 3,
-    question: "Who will you depend on that you don't control? Name suppliers, platforms or alliances.",
+    question: "Which supplier, platform or partner would you depend on first?",
   },
   {
     block: "revenue",
     stage: 4,
     question:
-      "Now the financial engine. What will your segment actually pay for, how (subscription, usage, licence) and roughly how much?",
+      "What would you charge for one paid pilot?",
   },
   {
     block: "costs",
     stage: 4,
     question:
-      "What are your three biggest cost drivers? Are you cost-driven or value-driven?",
+      "Which cost would most affect your margin on that pilot?",
   },
   {
     block: null,
@@ -109,13 +110,11 @@ export function vaguenessProbe(block: BlockId | null, answer: string): string | 
   const words = a.split(/\s+/).filter(Boolean);
   if (block === "segments") {
     if (VAGUE_SEGMENTS.includes(a) || (words.length <= 3 && VAGUE_SEGMENTS.some((v) => a.includes(v)))) {
-      return `“${answer.trim()}” is a market, not a segment. Which vertical? What company size or headcount? And who personally owns the credit card or budget for this?`;
+      return "Which industry or household type would you focus on first?";
     }
   }
   if (words.length < 3) {
-    return `That's a bit thin to put on a canvas. Can you be more specific about the ${
-      block ? BLOCKS[block].title.toLowerCase() : "problem"
-    } — who, what, and why it matters?`;
+    return block ? FOCUS_QUESTIONS[block] : "Which customer's recent experience could help us understand this pain?";
   }
   return null;
 }
@@ -192,29 +191,33 @@ export function priceFacts(answer: string): string[] {
 }
 
 /** Deterministic, rule-based Socratic turn for demo/offline mode. */
-export function coachTurn(canvas: Canvas, stepIndex: number, answer: string): CoachResult {
+export function coachTurn(canvas: Canvas, stepIndex: number, answer: string, history: ChatMessage[] = []): CoachResult {
   const step = STEPS[Math.max(0, Math.min(stepIndex, STEPS.length - 1))] ?? STEPS[0];
   if (!step) throw new Error("No coaching question available");
   const message = answer.trim();
-  const help = coachHelp({ text: message, canvas, block: step.block, question: step.question });
+  const next = STEPS[stepIndex + 1] ?? step;
+  const previous = [...history].reverse().find((m) => m.role === "coach")?.text ?? "";
+  const awaitingMove = /Shall we move on to /i.test(previous) && next.stage > step.stage;
+  if (awaitingMove && /^(yes|ok(?:ay)?|sure|let['’]s|move on|continue|go ahead)\b/i.test(message)) {
+    return { reply: facilitate(message, "We'll carry those hypotheses forward and keep their evidence separate.", next.question), additions: [], flags: [], assumptions: [], nextStep: stepIndex + 1, stage: next.stage };
+  }
+  if (awaitingMove && /^(no|not yet|stay|wait)\b/i.test(message)) {
+    return { reply: facilitate(message, "We can strengthen this stage before moving on.", step.block ? FOCUS_QUESTIONS[step.block] : "Which recent customer experience still needs checking?"), additions: [], flags: [], assumptions: [], nextStep: stepIndex, stage: step.stage };
+  }
+  const help = coachHelp({ text: message, canvas, history, block: step.block, question: step.question });
   if (help) return { reply: help.reply, additions: [], flags: [], assumptions: [], nextStep: stepIndex, stage: step.stage };
   let assistance: string | undefined;
+  const focus = step.block ? FOCUS_QUESTIONS[step.block] : "Which customer's recent experience could help us understand this pain?";
   if (/^(ok(?:ay)?|yes|sure|thanks|thank you|got it)[.!\s]*$/i.test(message)) {
-    assistance = `Let's stay with the current question. ${step.question}`;
+    assistance = facilitate(message, "Let's make the next step concrete rather than guess.", awaitingMove ? `Shall we move on to ${STAGE_NAMES[next.stage]}?` : focus);
   } else if (/\?|^(help|what do you mean|explain|can you|could you|please help|i don['’]t understand)\b/i.test(message)) {
-    assistance = stepIndex <= 1
-      ? "We’re looking for evidence, not a guess: a homeowner’s last cleaning arrangement, what they paid, or a reliable survey. What do you already know about a real homeowner’s experience?"
-      : `For ${step.block ? BLOCKS[step.block].title : "this assumption"}, start with one concrete example rather than a prediction. ${step.question}`;
+    assistance = facilitate(message, `A useful way to explore that is a concrete example; for ${step.block ? BLOCKS[step.block].title : "the customer and their pain"}, recent behaviour is stronger than a prediction.`, focus);
   }
   if (assistance) return { reply: assistance, additions: [], flags: [], assumptions: [], nextStep: stepIndex, stage: step.stage };
   const probe = vaguenessProbe(step.block, answer);
-  if (probe) {
-    return { reply: probe, additions: [], flags: [], assumptions: [], nextStep: stepIndex, stage: step.stage };
-  }
   if (stepIndex >= STEPS.length - 1) {
     return {
-      reply:
-        "Good — that's the assumption to attack first. I've drafted it as a test. Before you run it: what result would make you willing to pivot?",
+      reply: facilitate(message, "Treat that as a candidate risk, not a proven fact; decide your threshold before running a test.", "What result would make you rethink the model?"),
       additions: [],
       flags: [],
       assumptions: [],
@@ -222,7 +225,8 @@ export function coachTurn(canvas: Canvas, stepIndex: number, answer: string): Co
       stage: 5,
     };
   }
-  const additions = step.block ? extractItems(answer).map((text) => ({ block: step.block!, text, assumptions: extractAssumptions(step.block!, text) })) : [];
+  const block = step.block;
+  const additions = block ? extractItems(answer).map((text) => ({ block, text, assumptions: extractAssumptions(block, text) })) : [];
   // Never drop concrete prices the founder volunteers off-step (e.g. "R2000 a month").
   if (step.block !== "revenue") {
     for (const text of priceFacts(answer)) additions.push({ block: "revenue", text, assumptions: extractAssumptions("revenue", text) });
@@ -233,28 +237,32 @@ export function coachTurn(canvas: Canvas, stepIndex: number, answer: string): Co
   }
   const before = new Set(coherenceFlags(canvas));
   const flags = coherenceFlags(projected).filter((f) => !before.has(f));
-  const next = STEPS[stepIndex + 1]!;
   // Surface 1–2 assumptions from the whole statement (deduped), without answering for the founder.
   const seen = new Set<string>();
   const assumptions = additions
     .flatMap((a) => a.assumptions ?? [])
     .filter((a) => (seen.has(a.text) ? false : (seen.add(a.text), true)))
     .slice(0, 2);
-  const ack = step.block
-    ? `Noted under ${BLOCKS[step.block].title} as untested hypotheses (yellow). Notice what you're taking for granted below.`
-    : "That's a real starting point.";
-  const reply = flags.length
-    ? `${ack} But before we move on — ${flags[0]!.replace(/^Coherence: /, "")}`
-    : `${ack} ${next.question}`;
+  const stageComplete = !probe && next.stage > step.stage;
+  const value = probe
+    ? `That's enough for a provisional ${block ? BLOCKS[block].title : "customer"} draft; one missing detail would sharpen it.`
+    : stageComplete
+      ? `${STAGE_NAMES[step.stage]} now has a starting point for ${STAGE_GOALS[step.stage]}; these remain hypotheses, not verified evidence.`
+      : block ? `I've drafted that in ${BLOCKS[block].title}; test the behaviour behind it before treating it as fact.` : "Start with a recent customer experience rather than proposed features.";
+  const tension = flags[0]?.replace(/^Coherence: /, "").replace(/[^.!?]*\?/, "").trim();
+  const reply = facilitate(message, tension || value, probe ?? (stageComplete ? `Shall we move on to ${STAGE_NAMES[next.stage]}?` : next.question));
   return {
     reply,
     additions,
     flags,
     assumptions,
-    nextStep: flags.length ? stepIndex + 1 : stepIndex + 1,
-    stage: next.stage,
+    nextStep: probe || stageComplete ? stepIndex : stepIndex + 1,
+    stage: probe || stageComplete ? step.stage : next.stage,
   };
 }
+
+const STAGE_NAMES: Record<Stage, string> = { 1: "Intake", 2: "Desirability", 3: "Feasibility", 4: "Viability", 5: "Experiments" };
+const STAGE_GOALS: Record<Stage, string> = { 1: "the customer, pain and evidence", 2: "customer value, reach and relationships", 3: "delivery activities, resources and partners", 4: "pricing and cost drivers", 5: "the risky claim and its test" };
 
 const RISK_ORDER: BlockId[] = ["segments", "valueProps", "revenue", "channels", "keyResources", "keyPartners", "relationships", "keyActivities", "costs"];
 

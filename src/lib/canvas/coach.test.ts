@@ -3,14 +3,14 @@ import { coachTurn, coherenceFlags, vaguenessProbe } from "./coach";
 import { emptyCanvas } from "./types";
 
 describe("Socratic coach rules", () => {
-  it("rejects 'Small businesses' as a vague segment", () => {
-    expect(vaguenessProbe("segments", "Small businesses")).toMatch(/vertical/i);
+  it("asks one missing detail for a vague segment", () => {
+    expect(vaguenessProbe("segments", "Small businesses")?.match(/\?/g)).toHaveLength(1);
   });
 
   it("does not advance when the segment is vague", () => {
     const r = coachTurn(emptyCanvas(), 2, "Small businesses");
     expect(r.nextStep).toBe(2);
-    expect(r.additions).toHaveLength(0);
+    expect(r.additions[0]?.text).toBe("Small businesses");
   });
 
   it("adds specific segment answers as hypotheses and advances", () => {
