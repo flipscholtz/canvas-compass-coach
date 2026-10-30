@@ -30,8 +30,8 @@ const turnSchema = z.object({ reply: z.string().trim().min(1) }).passthrough();
 /** Only a usable reply is required; malformed extras are dropped instead of failing the whole turn. */
 export function parseCoachResponse(raw: string) {
   try {
-    const obj = turnSchema.parse(JSON.parse(raw)) as Record<string, unknown> & { reply: string };
-    const list = (v: unknown) => (Array.isArray(v) ? v : []) as Record<string, unknown>[];
+    const obj = turnSchema.parse(JSON.parse(raw)) as { reply: string; additions?: unknown; assumptions?: unknown; flags?: unknown; stage?: unknown };
+    const list = (v: unknown) => (Array.isArray(v) ? v : []) as { block?: unknown; text?: unknown; lens?: unknown }[];
     const additions = list(obj.additions).flatMap((a) => {
       const block = normalizeBlock(a?.block);
       const t = text(a?.text);
