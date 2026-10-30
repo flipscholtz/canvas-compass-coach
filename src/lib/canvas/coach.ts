@@ -192,7 +192,20 @@ export function priceFacts(answer: string): string[] {
 
 /** Deterministic, rule-based Socratic turn for demo/offline mode. */
 export function coachTurn(canvas: Canvas, stepIndex: number, answer: string): CoachResult {
-  const step = STEPS[Math.min(stepIndex, STEPS.length - 1)]!;
+  const step = STEPS[Math.max(0, Math.min(stepIndex, STEPS.length - 1))] ?? STEPS[0];
+  if (!step) throw new Error("No coaching question available");
+  const message = answer.trim();
+  let assistance: string | undefined;
+  if (/\b(data|statistics|stats|research)\b/i.test(message) && /\?|\b(help|find|where|source|can you)\b/i.test(message)) {
+    assistance = "Yes — start with the national statistics office’s household or labour-force surveys, then check local industry reports. Look for how many households pay for domestic cleaning, the survey date and who was counted; I can’t look up live figures here. Which country or area are your homeowners in?";
+  } else if (/^(ok(?:ay)?|yes|sure|thanks|thank you|got it)[.!\s]*$/i.test(message)) {
+    assistance = `Let's stay with the current question. ${step.question}`;
+  } else if (/\?|^(help|what do you mean|explain|can you|could you|please help|i don['’]t understand)\b/i.test(message)) {
+    assistance = stepIndex <= 1
+      ? "We’re looking for evidence, not a guess: a homeowner’s last cleaning arrangement, what they paid, or a reliable survey. What do you already know about a real homeowner’s experience?"
+      : `For ${step.block ? BLOCKS[step.block].title : "this assumption"}, start with one concrete example rather than a prediction. ${step.question}`;
+  }
+  if (assistance) return { reply: assistance, additions: [], flags: [], assumptions: [], nextStep: stepIndex, stage: step.stage };
   const probe = vaguenessProbe(step.block, answer);
   if (probe) {
     return { reply: probe, additions: [], flags: [], assumptions: [], nextStep: stepIndex, stage: step.stage };

@@ -1,0 +1,48 @@
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { ChatPane } from "./ChatPane";
+import { useCanvasStore } from "@/lib/canvas/store";
+import { llmTurn } from "@/lib/canvas/llm";
+
+vi.mock("./useServerAi", () => ({ useServerAi: () => true }));
+vi.mock("@/lib/canvas/llm", () => ({ llmTurn: vi.fn() }));
+beforeEach(() => {
+  useCanvasStore.getState().newScenario();
+  vi.mocked(llmTurn).mockReset();
+  Element.prototype.scrollIntoView = vi.fn();
+});
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.restoreAllMocks(); });
+
+it("renders an in-chat fallback, allows input and retries the same user turn", async () => {
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  vi.mocked(llmTurn).mockRejectedValueOnce(new Error("bad response")).mockResolvedValueOnce({ reply: "Which area are your homeowners in?", additions: [], assumptions: [], flags: [], stage: 1 });
+  render(<ChatPane />);
+  const input = screen.getByPlaceholderText(/Answer the coach/);
+  fireEvent.change(input, { target: { value: "Can you help me find some data?" } });
+  fireEvent.submit(input.closest("form") as HTMLFormElement);
+  await screen.findByText(/lost my train of thought/);
+  expect(input).toBeEnabled();
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  await screen.findByText("Which area are your homeowners in?");
+  expect(useCanvasStore.getState().messages.filter((m) => m.role === "user")).toHaveLength(1);
+  expect(screen.queryByText(/lost my train of thought/)).not.toBeInTheDocument();
+});
+
+it("releases a stalled chat at 30 seconds and ignores its late result", async () => {
+  vi.useFakeTimers();
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  let finish: ((r: Awaited<ReturnType<typeof llmTurn>>) => void) | undefined;
+  vi.mocked(llmTurn).mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+  render(<ChatPane />);
+  const input = screen.getByPlaceholderText(/Answer the coach/);
+  fireEvent.change(input, { target: { value: "help" } });
+  fireEvent.submit(input.closest("form") as HTMLFormElement);
+  expect(screen.getByRole("status")).toHaveTextContent("Coach is thinking…");
+  await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
+  expect(screen.getByText(/lost my train of thought/)).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled();
+  expect(input).toBeEnabled();
+  await act(async () => { finish?.({ reply: "Late reply", stage: 5, additions: [], assumptions: [], flags: [] }); });
+  expect(screen.queryByText("Late reply")).not.toBeInTheDocument();
+  expect(useCanvasStore.getState().stage).toBe(1);
+});

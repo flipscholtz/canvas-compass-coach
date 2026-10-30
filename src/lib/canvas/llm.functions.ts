@@ -27,14 +27,24 @@ export const serverChat = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    const key = serverKey();
-    if (!key) throw new Error("The shared demo AI is currently switched off.");
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({ model: data.model, response_format: { type: "json_object" }, messages: data.messages }),
-    });
-    if (!res.ok) throw new Error(`Demo AI request failed (${res.status})`);
-    const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
-    return { content: json.choices?.[0]?.message?.content ?? "{}" };
+    let rawResponse: string | null = null;
+    try {
+      const key = serverKey();
+      if (!key) throw new Error("The shared demo AI is currently switched off.");
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        signal: AbortSignal.timeout(30_000),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+        body: JSON.stringify({ model: data.model, response_format: { type: "json_object" }, messages: data.messages }),
+      });
+      rawResponse = await res.text();
+      if (!res.ok) throw new Error(`Demo AI request failed (${res.status})`);
+      const json = JSON.parse(rawResponse) as { choices?: { message?: { content?: string } }[] };
+      const content = json.choices?.[0]?.message?.content;
+      if (typeof content !== "string" || !content.trim()) throw new Error("Demo AI returned no text");
+      return { content, error: null };
+    } catch (error) {
+      console.error("[CanvasStack coach] Shared AI failure", { error, rawResponse });
+      return { content: "", error: "The shared coach could not complete this request." };
+    }
   });
