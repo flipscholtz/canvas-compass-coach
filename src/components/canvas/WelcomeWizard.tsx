@@ -7,7 +7,7 @@ const KEY = "canvasstack-welcome-seen";
 
 /** Live tour: each step points at an element marked with data-tour="…"; steps without a visible target are centred. */
 const STEPS: { target?: string; title: string; body: string }[] = [
-  { title: "Welcome to CanvasStack", body: "A Socratic co-pilot for your Business Model Canvas. It asks questions rather than giving answers, so you see what you're taking for granted. Everything stays in this browser, with no sign-up needed. Let's take a quick look around." },
+  { title: "Welcome to CanvasStack", body: "A Socratic co-pilot for your Business Model Canvas. It asks questions rather than giving answers, so you see what you're taking for granted. Everything stays in this browser, with no sign-up needed. Let's take a quick look around. Note: CanvasStack is a coaching aid, not professional legal, financial or regulatory advice." },
   { target: "coach", title: "Talk to the coach", body: "Answer the coach's questions here. It turns your answers into sticky notes, pushes back on vague answers, and highlights the underlying assumptions (desirability, feasibility, viability)." },
   { target: "canvas", title: "Your canvas", body: "Every note starts as an Untested hypothesis. Click a note to see its assumptions, edit it, or mark it Validated or Invalidated. The lightbulb on each block suggests assumptions to test." },
   { target: "tabs", title: "Test what matters", body: "Open Explore → Experiments for Test Cards and the Experiment Designer. Extract & Test Riskiest Assumption drafts a Strategyzer Test Card; the Experiment Designer turns assumptions into a printable interview call sheet with persona and screener questions." },

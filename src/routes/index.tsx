@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Eye, Layers, Settings, Compass, X, ChevronDown, Route as JourneyIcon, FlaskConical, ScrollText } from "lucide-react";
+import { Info, Eye, Layers, Settings, Compass, X, ChevronDown, Route as JourneyIcon, FlaskConical, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCanvasFeedback } from "@/components/canvas/useCanvasFeedback";
 import { STAGES } from "@/lib/canvas/types";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { useCanvasStore } from "@/lib/canvas/store";
@@ -49,6 +50,18 @@ function Index() {
 function App() {
   const s = useCanvasStore();
   const mobile = useIsMobile();
+  const [vv, setVv] = useState({ height: 844, bottom: 0, keyboard: false });
+  useEffect(() => {
+    const v = window.visualViewport;
+    const update = () => {
+      const h = v ? v.height : window.innerHeight;
+      const bottom = v ? Math.max(0, window.innerHeight - v.height - v.offsetTop) : 0;
+      setVv({ height: Math.round(h), bottom: Math.round(bottom), keyboard: bottom > 80 });
+    };
+    update();
+    v?.addEventListener("resize", update); v?.addEventListener("scroll", update); window.addEventListener("resize", update);
+    return () => { v?.removeEventListener("resize", update); v?.removeEventListener("scroll", update); window.removeEventListener("resize", update); };
+  }, []);
   const { activeBlock, flashing } = useCanvasFeedback();
   const [rightView, setRightView] = useState<"canvas" | "journey" | "log" | "tests">("canvas");
   const [coachOpen, setCoachOpen] = useState(true);
@@ -68,29 +81,41 @@ function App() {
   if (!viewing) return null;
   const stage = STAGES.find((st) => st.id === s.stage);
   const coachVisible = mobile ? mobileCoach : coachOpen;
+  const stageMenu = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild><button type="button" className="inline-flex min-h-11 items-center gap-1 text-xs text-muted-foreground md:min-h-0 md:text-[10px]" aria-label="Show all stages">Stage {s.stage} of 5 · {stage?.short} <ChevronDown className="size-3" /></button></DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        {STAGES.map((st) => <DropdownMenuItem key={st.id} className={cn("min-h-11 md:min-h-0", st.id === s.stage && "font-semibold text-signal")}>{st.id}. {st.label}{st.id === s.stage ? " · current" : ""}</DropdownMenuItem>)}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden">
-      <Toaster position="top-center" />
+    <div className="flex h-dvh flex-col overflow-hidden overscroll-none">
+      <Toaster position="top-center" offset="max(16px, env(safe-area-inset-top))" />
       <WelcomeWizard open={tour} onOpenChange={setTour} />
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b bg-paper px-4 py-3 lg:px-6">
-        <div className="flex items-center gap-3">
-          <div className="grid size-9 place-items-center rounded-lg bg-ink text-ink-foreground">
+      <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b bg-paper px-3 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] sm:flex sm:justify-between sm:gap-3 sm:px-4 sm:py-3 lg:px-6">
+        <div className="flex min-w-0 flex-1 basis-48 items-center gap-3">
+          <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-ink text-ink-foreground">
             <Layers className="size-5" />
           </div>
-          <div>
-            <h1 className="font-display text-lg font-semibold leading-none">
-              CanvasStack <span className="text-muted-foreground">· Socratic BMC Co-Pilot</span>
+          <div className="min-w-0">
+            <h1 className="truncate font-display text-lg font-semibold leading-none">
+              CanvasStack <span className="hidden text-muted-foreground sm:inline">· Socratic BMC Co-Pilot</span>
             </h1>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 truncate text-xs text-muted-foreground">
               {s.scenarioName} · <span className="font-mono">Guest mode</span>
             </p>
           </div>
         </div>
-        <div className="flex gap-1.5">
-          <Button data-tour="tour" variant="ghost" size="sm" onClick={() => { setRightView("canvas"); setCoachOpen(true); setTour(true); }}><TourIcon className="size-4" /> Tour</Button>
-          <div data-tour="scenarios" className="flex flex-wrap items-center gap-2"><ScenarioMenu /></div>
-          <Button size="icon" variant="outline" className="size-8" aria-label="Settings" onClick={() => { setKey(s.apiKey); setModel(s.model); setSettings(true); }}>
+        <div className="flex min-w-0 max-w-full items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
+          <Popover>
+            <PopoverTrigger asChild><Button size="icon" variant="ghost" className="size-11 md:size-8" aria-label="About this advice"><Info className="size-4" /></Button></PopoverTrigger>
+            <PopoverContent align="end" className="w-64 text-xs text-muted-foreground">Coaching heuristic aid, not professional legal, financial, or regulatory advice.</PopoverContent>
+          </Popover>
+          <Button data-tour="tour" variant="ghost" size="sm" className="max-md:size-11 max-md:px-0" aria-label="Start tour" onClick={() => { setRightView("canvas"); setCoachOpen(true); setTour(true); }}><TourIcon className="size-4" /> <span className="max-md:sr-only">Tour</span></Button>
+          <div data-tour="scenarios" className="flex shrink-0 items-center gap-2"><ScenarioMenu /></div>
+          <Button size="icon" variant="outline" className="size-11 md:size-8" aria-label="Settings" onClick={() => { setKey(s.apiKey); setModel(s.model); setSettings(true); }}>
             <Settings />
           </Button>
         </div>
@@ -121,18 +146,18 @@ function App() {
             </div>
           </div>
         </section>
-        <aside data-tour="coach" aria-label="Socratic Coach" className={cn("min-h-0 min-w-0 border-l bg-paper", mobile ? (mobileCoach ? "fixed inset-x-0 bottom-0 z-40 flex h-[60dvh] max-h-[60dvh] flex-col rounded-t-lg border-t shadow-card" : "hidden") : (coachOpen ? "flex flex-col" : "block"))}>
+        <aside data-tour="coach" aria-label="Socratic Coach" style={mobile && mobileCoach ? { bottom: vv.bottom, height: vv.keyboard ? vv.height : Math.round(vv.height * 0.6) } : undefined} className={cn("min-h-0 min-w-0 border-l bg-paper", mobile ? (mobileCoach ? "fixed inset-x-0 z-40 flex flex-col overflow-hidden rounded-t-lg border-t shadow-card" : "hidden") : (coachOpen ? "flex flex-col" : "block"))}>
           <div className={cn("flex min-h-0 flex-1 flex-col", !coachVisible && "hidden")}>
             <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
-              <div className="min-w-0"><h2 className="flex items-center gap-1.5 text-sm font-semibold"><Compass className="size-4 text-signal" /> Socratic Coach</h2><p className="text-[10px] text-muted-foreground">Stage {s.stage} of 5 · {stage?.short}</p></div>
-              <Button variant="ghost" size="icon" className="size-7" aria-label="Collapse coach panel" title="Collapse coach panel" onClick={() => mobile ? setMobileCoach(false) : setCoachOpen(false)}><X className="size-4" /></Button>
+              <div className="min-w-0"><h2 className="flex items-center gap-1.5 text-sm font-semibold"><Compass className="size-4 text-signal" /> Socratic Coach</h2>{stageMenu}</div>
+              <Button variant="ghost" size="icon" className="size-11 md:size-7" aria-label="Collapse coach panel" title="Collapse coach panel" onClick={() => mobile ? setMobileCoach(false) : setCoachOpen(false)}><X className="size-4" /></Button>
             </div>
             <div className="min-h-0 flex-1"><ChatPane /></div>
           </div>
           {!coachVisible && !mobile && <Button variant="ghost" className="h-full w-full flex-col justify-start gap-3 rounded-none px-1 py-4" aria-label="Expand coach panel" onClick={() => setCoachOpen(true)}><Compass className="size-4 text-signal" /><span className="text-xs [writing-mode:vertical-rl]">Coach</span></Button>}
         </aside>
       </main>
-      <div className="flex items-center justify-between border-t bg-paper px-3 py-2 md:hidden"><span className="text-[10px] text-muted-foreground">Stage {s.stage} of 5 · {stage?.short}</span><Button size="sm" variant="outline" onClick={() => setMobileCoach(true)}><Compass className="size-4" /> Coach</Button></div>
+      <div className="flex shrink-0 items-center justify-between border-t bg-paper px-3 pt-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] md:hidden">{stageMenu}<Button variant="outline" className="min-h-11" onClick={() => setMobileCoach(true)}><Compass className="size-4" /> Coach</Button></div>
       <Dialog open={rightView !== "canvas"} onOpenChange={(open) => { if (!open) setRightView("canvas"); }}>
         <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-4xl">
           <DialogHeader><DialogTitle>{rightView === "journey" ? "Business model journey" : rightView === "log" ? "Changelog & Decisions" : "Experiments"}</DialogTitle><DialogDescription>{s.scenarioName}</DialogDescription></DialogHeader>
@@ -140,9 +165,6 @@ function App() {
         </DialogContent>
       </Dialog>
 
-      <footer className="hidden border-t bg-paper px-4 py-2 text-center md:block text-[11px] text-muted-foreground">
-        Coaching heuristic only. Does not replace professional legal, financial, or regulatory counsel.
-      </footer>
 
       <Dialog open={settings} onOpenChange={setSettings}>
         <DialogContent>
