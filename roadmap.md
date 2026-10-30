@@ -3,3 +3,5 @@
 - [x] Verify the coach in the app and update App updates.
 - [x] Prevent blank/frozen coach replies and provide explicit retry recovery.
 - [x] Test 30-second failures and free-text requests; verify the reported conversation in the app.
+- [ ] Add contextual research and clarification help with explicit assumption/Test Card consent.
+- [ ] Test and verify help guidance, Yes / Not now, and persistence in the app.

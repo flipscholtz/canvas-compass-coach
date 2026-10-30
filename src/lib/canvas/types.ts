@@ -71,6 +71,15 @@ export interface ChatMessage {
   coherenceKey?: string;
   /** Failed turns point to the original user message for an explicit retry. */
   retryUserId?: string;
+  helpOffer?: HelpOffer;
+}
+
+export interface HelpOffer {
+  block: BlockId;
+  claim: string;
+  card: Omit<TestCard, "id">;
+  versionId?: string;
+  decision?: "accepted" | "dismissed";
 }
 
 export type Stage = 1 | 2 | 3 | 4 | 5;

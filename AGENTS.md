@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture
+- Recognized help requests use the same pure, contextual helper in live and offline chat because the current completion setup has no browsing tools; saving proposals is an atomic, version-scoped, idempotent store action requiring explicit consent.
 - Coach turns use a bounded, validated response boundary and explicit retry metadata referencing the original user message, so failures cannot create blank replies, duplicate user turns or late canvas updates.
 - All app state lives in a client-side zustand store (src/lib/canvas/store.ts) persisted to localStorage: guest mode with no backend or sign-in is a hard requirement.
 - The offline coach (src/lib/canvas/coach.ts) is pure, deterministic functions so its rules stay unit-testable.

@@ -12,6 +12,8 @@ import { AssumptionChip } from "./AssumptionChip";
 import { llmTurn } from "@/lib/canvas/llm";
 import { useServerAi } from "./useServerAi";
 import { COACH_FALLBACK, withCoachDeadline } from "@/lib/canvas/chat-recovery";
+import { coachHelp } from "@/lib/canvas/help";
+import { BLOCKS } from "@/lib/canvas/types";
 
 const QUICK = [
   { label: "Identify My Riskiest Assumption", key: "risk" },
@@ -61,7 +63,10 @@ export function ChatPane() {
     setPendingRetry(retry?.failureId ?? null);
     setBusy(true);
     try {
-      if (live) {
+      const help = coachHelp({ text: t, canvas: head, history, block: STEPS[s.step]?.block ?? null, question: STEPS[s.step]?.question ?? "" });
+      if (help) {
+        publish({ role: "coach", text: help.reply, helpOffer: { ...help.offer, versionId: state.versions.at(-1)?.id ?? "" } });
+      } else if (live) {
         const r = await withCoachDeadline((signal) => llmTurn({ apiKey: s.apiKey, model: s.model, canvas: head, history, signal }));
         if (!currentSession()) return;
         s.addItems(r.additions.map((a, i) => (i === 0 && r.assumptions.length ? { ...a, assumptions: r.assumptions } : a)));
@@ -166,6 +171,22 @@ export function ChatPane() {
               </div>
               <div className="max-w-[90%] space-y-2">
                 <p className="whitespace-pre-line break-words text-sm leading-relaxed">{m.text.trim() || COACH_FALLBACK}</p>
+                {m.helpOffer && (
+                  <div className="space-y-2 border-l-2 border-signal pl-3 text-xs">
+                    {m.helpOffer.decision ? (
+                      <p className="text-muted-foreground">{m.helpOffer.decision === "accepted" ? `Saved as untested in ${BLOCKS[m.helpOffer.block].title}; Test Card created.` : "Not recorded. You can keep exploring."}</p>
+                    ) : (
+                      <>
+                        <p>Record this assumption and create a Test Card?</p>
+                        <div className="flex gap-2">
+                          <Button size="sm" disabled={busy || !!s.viewingId || m.helpOffer.versionId !== s.versions.at(-1)?.id} onClick={() => s.resolveHelpOffer(m.id, true)}>Yes</Button>
+                          <Button size="sm" variant="outline" disabled={busy} onClick={() => s.resolveHelpOffer(m.id, false)}>Not now</Button>
+                        </div>
+                        {m.helpOffer.versionId !== s.versions.at(-1)?.id && <p className="text-muted-foreground">This offer belongs to an earlier canvas. Ask again on your working canvas.</p>}
+                      </>
+                    )}
+                  </div>
+                )}
                 {m.retryUserId && (
                   <Button variant="outline" size="sm" disabled={busy} onClick={() => {
                     const user = s.messages.find((u) => u.id === m.retryUserId && u.role === "user");
