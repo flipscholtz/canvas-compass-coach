@@ -8,13 +8,13 @@ type Msg = { role: "system" | "user" | "assistant"; content: string };
 async function chat(apiKey: string, model: string, messages: Msg[], signal?: AbortSignal): Promise<string> {
   if (!apiKey) {
     const m = model === "gpt-4o" ? "gpt-4o" : "gpt-4o-mini";
-    const result = await serverChat({ data: { model: m, messages }, signal });
+    const result = await serverChat({ data: { model: m, messages }, ...(signal ? { signal } : {}) });
     if (result.error) throw new Error(result.error);
     return result.content;
   }
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    signal,
+    ...(signal ? { signal } : {}),
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({ model, response_format: { type: "json_object" }, messages }),
   });

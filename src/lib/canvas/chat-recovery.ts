@@ -8,7 +8,7 @@ const nonempty = z.string().trim().min(1);
 const turnSchema = z.object({
   reply: nonempty,
   stage: z.number().int().min(1).max(5),
-  additions: z.array(z.object({ block: z.string().refine((b) => BLOCK_ORDER.includes(b as typeof BLOCK_ORDER[number])), text: nonempty })),
+  additions: z.array(z.object({ block: z.string().refine((b): b is typeof BLOCK_ORDER[number] => BLOCK_ORDER.includes(b as typeof BLOCK_ORDER[number])), text: nonempty })),
   flags: z.array(nonempty),
   assumptions: z.array(z.object({ lens: z.enum(["desirability", "feasibility", "viability"]), text: nonempty })),
 });
