@@ -7,6 +7,11 @@ export interface DevLogEntry {
 
 export const DEV_LOG: DevLogEntry[] = [
   {
+    date: "2026-10-30",
+    title: "Coach chat no longer gets stuck on blank replies",
+    changes: ["The coach shows ‘Coach is thinking…’ while waiting and a friendly reply with Retry after a failure or 30 seconds.", "Empty or malformed AI replies cannot create blank messages; the input stays usable after failures.", "Questions, requests for data, help and acknowledgements are handled without adding them as venture facts. Diagnostic failures include the raw AI reply, never the key."],
+  },
+  {
     date: "2026-10-28",
     title: "Tour now covers the Experiment Designer",
     changes: ["The \"Test what matters\" step of the welcome tour mentions the Experiment Designer and what its interview call sheet contains."],

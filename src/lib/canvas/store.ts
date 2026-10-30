@@ -40,6 +40,7 @@ interface State {
   updateItem: (block: BlockId, id: string, patch: Partial<CanvasItem>) => void;
   deleteItem: (block: BlockId, id: string) => void;
   pushMessage: (m: Omit<ChatMessage, "id">) => void;
+  replaceMessage: (id: string, m: Omit<ChatMessage, "id">) => void;
   checkCoherence: () => boolean;
   setProgress: (step: number, stage: Stage) => void;
   commitVersion: (label: string, note: string, focusBlocks?: BlockId[]) => void;
@@ -166,6 +167,7 @@ export const useCanvasStore = create<State>()(
           };
         }),
       pushMessage: (m) => set((s) => ({ messages: [...s.messages, { ...m, id: uid() }] })),
+      replaceMessage: (id, m) => set((s) => ({ messages: s.messages.map((old) => old.id === id ? { ...m, id } : old) })),
       checkCoherence: () => {
         let added = false;
         set((s) => {

@@ -69,6 +69,8 @@ export interface ChatMessage {
   assumptions?: Assumption[];
   /** Content/status fingerprint for idempotent local coherence checks. */
   coherenceKey?: string;
+  /** Failed turns point to the original user message for an explicit retry. */
+  retryUserId?: string;
 }
 
 export type Stage = 1 | 2 | 3 | 4 | 5;

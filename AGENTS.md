@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture
+- Coach turns use a bounded, validated response boundary and explicit retry metadata referencing the original user message, so failures cannot create blank replies, duplicate user turns or late canvas updates.
 - All app state lives in a client-side zustand store (src/lib/canvas/store.ts) persisted to localStorage: guest mode with no backend or sign-in is a hard requirement.
 - The offline coach (src/lib/canvas/coach.ts) is pure, deterministic functions so its rules stay unit-testable.
 - Explicit coherence reviews use the pure local analyzer in src/lib/canvas/coherence.ts via the existing store, independent of optional AI settings; content/status fingerprints prevent repeated unchanged reports and the selected version supplies the reviewed canvas.

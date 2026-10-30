@@ -1,25 +1,34 @@
 import { stripBelievePrefix } from "./assumptions";
 import { serverChat } from "./llm.functions";
+import { parseCoachResponse } from "./chat-recovery";
 
 type Msg = { role: "system" | "user" | "assistant"; content: string };
 
 /** Uses the founder's own key if set; otherwise the server-held demo key. */
-async function chat(apiKey: string, model: string, messages: Msg[]): Promise<string> {
+async function chat(apiKey: string, model: string, messages: Msg[], signal?: AbortSignal): Promise<string> {
   if (!apiKey) {
     const m = model === "gpt-4o" ? "gpt-4o" : "gpt-4o-mini";
-    return (await serverChat({ data: { model: m, messages } })).content;
+    const result = await serverChat({ data: { model: m, messages }, signal });
+    if (result.error) throw new Error(result.error);
+    return result.content;
   }
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
+    signal,
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
     body: JSON.stringify({ model, response_format: { type: "json_object" }, messages }),
   });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body?.error?.message ?? `OpenAI request failed (${res.status})`);
+  const raw = await res.text();
+  try {
+    if (!res.ok) throw new Error(`OpenAI request failed (${res.status})`);
+    const data = JSON.parse(raw);
+    const content = data.choices?.[0]?.message?.content;
+    if (typeof content !== "string" || !content.trim()) throw new Error("AI returned no text");
+    return content;
+  } catch (error) {
+    console.error("[CanvasStack coach] AI transport failure", { error, rawResponse: raw });
+    throw error;
   }
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content ?? "{}";
 }
 import { type Assumption, BLOCK_ORDER, type BlockId, type Canvas, type ChatMessage, type Stage } from "./types";
 
@@ -33,6 +42,7 @@ Rules:
 6. Open with Customer Segments: who is this for and what job or pain do they have. Follow the Mom Test: ask "how do you know?" (past behaviour, evidence) before ever asking about product features or solutions.
 7. Capture every concrete fact the founder gives (prices, amounts, numbers, named partners) as an addition in the matching block, even if it is not the block being discussed (e.g. "R2000 a month" goes to revenue).
 8. If you decline a request or the message is off-topic, return empty additions and assumptions.
+9. Every message needs a nonempty, helpful reply, including questions, requests for data, clarification, "help" and "ok". These are not automatically answers or venture facts: do not add them to the canvas or advance the stage. Clarify the current question or help with the request first. For data requests, suggest credible sources and how to check relevance, never invent statistics or claim you searched the web; ask which country or area matters if unknown.
 Stages: 1 Intake, 2 Desirability (segments, value props, channels, relationships), 3 Feasibility (activities, resources, partners), 4 Viability (revenue, costs), 5 Test Cards.
 Respond ONLY with JSON: {"reply": string, "stage": 1-5, "additions": [{"block": one of ${BLOCK_ORDER.join("|")}, "text": string}], "assumptions": [{"lens": "desirability"|"feasibility"|"viability", "text": string}], "flags": [string]}`;
 
@@ -49,6 +59,7 @@ export async function llmTurn(opts: {
   model: string;
   canvas: Canvas;
   history: ChatMessage[];
+  signal?: AbortSignal;
 }): Promise<LlmResult> {
   const canvasSummary = Object.fromEntries(
     BLOCK_ORDER.map((b) => [b, opts.canvas[b].map((i) => `${i.text} [${i.status}]`)]),
@@ -60,8 +71,8 @@ export async function llmTurn(opts: {
           role: (m.role === "coach" ? "assistant" : "user") as Msg["role"],
           content: m.text,
         })),
-  ]);
-  const parsed = JSON.parse(content);
+  ], opts.signal);
+  const parsed = parseCoachResponse(content);
   const stage = Math.min(5, Math.max(1, Number(parsed.stage) || 1)) as Stage;
   return {
     reply: String(parsed.reply ?? "Tell me more."),
