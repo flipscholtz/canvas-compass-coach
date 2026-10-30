@@ -52,10 +52,10 @@ it("helps without an AI call and saves the proposed note/card only after Yes", a
   const input = screen.getByPlaceholderText(/Answer the coach/);
   fireEvent.change(input, { target: { value: "Can you help me find some data?" } });
   fireEvent.submit(input.closest("form") as HTMLFormElement);
-  await screen.findByRole("button", { name: "Yes", exact: true });
+  await screen.findByRole("button", { name: /^Yes$/ });
   expect(llmTurn).not.toHaveBeenCalled();
   expect(useCanvasStore.getState().cards).toHaveLength(0);
-  fireEvent.click(screen.getByRole("button", { name: "Yes", exact: true }));
+  fireEvent.click(screen.getByRole("button", { name: /^Yes$/ }));
   expect(useCanvasStore.getState().cards).toHaveLength(1);
   expect(useCanvasStore.getState().versions.at(-1)?.canvas.segments[0]?.status).toBe("hypothesis");
   expect(screen.getByText(/Saved as untested/)).toBeInTheDocument();

@@ -37,6 +37,11 @@ describe("practical help", () => {
     expect(result?.offer.block).toBe(block);
     expect(result?.offer.card.block).toBe(block);
   });
+  it("uses the evidence question rather than incidental support wording", () => {
+    const result = coachHelp({ text: "Can you help me find some data?", canvas: emptyCanvas(), history: [{ id: "c", role: "coach", text: "That supports a starting point. What evidence supports homeowners hiring domestic workers?" }] });
+    expect(result?.offer.block).toBe("segments");
+    expect(result?.offer.claim).toBe("homeowners in our target area already hire and pay domestic workers for cleaning");
+  });
 });
 
 describe("consent", () => {

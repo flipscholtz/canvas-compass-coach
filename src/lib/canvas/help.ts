@@ -23,7 +23,7 @@ function relatedBlock(question: string, fallback: BlockId): BlockId {
   const cues: [BlockId, RegExp][] = [
     ["costs", /cost|expense|margin/i], ["revenue", /price|revenue|how much|willing.*pay/i],
     ["keyPartners", /partner|supplier|alliance/i], ["keyResources", /resource|skill|licen[cs]e|equipment/i],
-    ["keyActivities", /activit|workflow|deliver.*reliabl/i], ["relationships", /support|relationship|retain/i],
+    ["keyActivities", /activit|workflow|deliver.*reliabl/i], ["relationships", /customer support|support request|relationship|retain|retention/i],
     ["channels", /channel|discover|reach|find.*provider/i], ["valueProps", /benefit|value proposition|workaround/i],
     ["segments", /homeowner|domestic worker|customer|household|who.*for/i],
   ];
@@ -36,7 +36,9 @@ export function coachHelp(opts: { text: string; canvas: Canvas; history?: ChatMe
   if (!intent) return null;
   const history = opts.history ?? [];
   const prior = [...history].reverse().find((m) => m.role === "coach" && !m.helpOffer && !m.retryUserId)?.text ?? opts.question ?? "";
-  const block = relatedBlock(prior, opts.block ?? "segments");
+  // Match the current question, not incidental words in the preceding acknowledgement.
+  const questionText = prior.match(/[^.!?\n]*\?/g)?.at(-1) ?? prior;
+  const block = relatedBlock(questionText, opts.block ?? "segments");
   const guide = GUIDANCE[block];
   const userContext = [...history].reverse().filter((m) => m.role === "user" && !helpIntent(m.text)).slice(0, 3).map((m) => m.text).join(" ");
   const context = `${prior} ${userContext} ${BLOCK_ORDER.flatMap((b) => opts.canvas[b].filter((i) => i.status !== "invalidated").map((i) => i.text)).join(" ")}`;
