@@ -52,7 +52,7 @@ export function ChatPane() {
     : !used.has("vp") && head.segments.length > 0 && head.valueProps.length > 0 ? "vp"
     : null;
   const eligibleText = eligible ? QUICK.find((q) => q.key === eligible)!.suggest : "";
-  const suggestedAt = eligible ? s.messages.findLastIndex((m) => m.role === "coach" && m.text === eligibleText) : -1;
+  const suggestedAt = eligible ? s.messages.map((m) => m.role === "coach" && m.text === eligibleText).lastIndexOf(true) : -1;
   const suggested = eligible && suggestedAt >= 0 && s.messages.length - 1 - suggestedAt <= MOVE_ON ? eligible : null;
   useEffect(() => {
     if (!eligible || busy || suggestedAt >= 0 || s.viewingId) return;
