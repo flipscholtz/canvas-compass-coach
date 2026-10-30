@@ -113,6 +113,7 @@ describe("restaurant website scenario", () => {
   it("puts revenue, delivery and acquisition gaps on top with next steps", () => {
     const { top } = presentCoherence(analyzeCoherence(restaurant()));
     expect(top).toHaveLength(3);
+    expect(new Set(top.map((p) => p.finding.theme))).toEqual(new Set(["revenue", "deliver", "acquire"]));
     expect(top.every((p) => ["revenue", "deliver", "acquire"].includes(p.finding.theme) && p.finding.why && p.finding.action)).toBe(true);
     const ids = analyzeCoherence(restaurant()).findings.map((f) => f.id);
     expect(ids).toEqual(expect.arrayContaining(["who-pays", "vp-activities", "cost-coverage", "reach"]));

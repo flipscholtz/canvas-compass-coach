@@ -149,5 +149,8 @@ export function presentCoherence(report: CoherenceReport, top = 3) {
     findings: ordered.filter((p) => p.finding.theme === theme),
     thinBlocks: thin.filter((f) => f.theme === theme),
   })).filter((g) => g.findings.length || g.thinBlocks.length);
-  return { top: ordered.slice(0, top), groups, evidence: report.evidence };
+  // Spread the top picks across revenue, delivery and acquisition before repeating a theme.
+  const spread = (["revenue", "deliver", "acquire"] as CoherenceTheme[]).map((t) => ordered.find((p) => p.finding.theme === t)).filter((p): p is PresentedFinding => !!p);
+  const picks = [...spread, ...ordered.filter((p) => !spread.includes(p))].slice(0, top);
+  return { top: ordered.filter((p) => picks.includes(p)), groups, evidence: report.evidence };
 }
