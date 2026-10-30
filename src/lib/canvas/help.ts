@@ -59,7 +59,10 @@ export function coachHelp(opts: { text: string; canvas: Canvas; history?: ChatMe
   const answer = intent === "data"
     ? `I can't look this up live. Try census/household surveys, trade reports, marketplaces, Google Trends and competitor reviews; check dates and locations.\nSearch:\n${searches.map((s) => `• ${s}`).join("\n")}\nThis week: 5 short interviews about recent hiring or purchases, not market-wide proof.`
     : `For ${BLOCKS[block].title}, ${example}; this is an illustrative tip, not evidence about your venture.`;
-  const question = cleaning ? "Which neighbourhood could you reach five homeowners in this week?" : guide.question;
+  let question = cleaning ? "Which neighbourhood could you reach five homeowners in this week?" : guide.question;
+  if (history.some((m) => m.role === "coach" && m.text.endsWith(question))) {
+    question = cleaning ? "Who could introduce you to a homeowner for the first interview?" : `What is the smallest evidence-gathering step you could take for ${BLOCKS[block].title} this week?`;
+  }
   return {
     reply: facilitate(opts.text, answer, question),
     offer: {
