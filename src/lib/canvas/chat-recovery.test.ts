@@ -10,11 +10,18 @@ describe("coach response boundary", () => {
   it("accepts a helpful reply without canvas additions", () => {
     expect(parseCoachResponse(JSON.stringify(valid))).toEqual(valid);
   });
-  it.each(["", "not json", JSON.stringify({ ...valid, reply: "  " }), JSON.stringify({ ...valid, stage: 9 }), JSON.stringify({ ...valid, additions: [{ block: "unknown", text: "x" }] })])("rejects invalid output and logs its raw response: %s", (raw) => {
+  it.each(["", "not json", JSON.stringify({ ...valid, reply: "  " })])("rejects invalid output and logs its raw response: %s", (raw) => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
     expect(() => parseCoachResponse(raw)).toThrow();
     expect(log).toHaveBeenCalledWith(expect.any(String), expect.objectContaining({ rawResponse: raw, error: expect.anything() }));
     log.mockRestore();
+  });
+  it("keeps a detailed reply when extras are malformed or use display block names", () => {
+    const r = parseCoachResponse(JSON.stringify({ reply: "Which feature would owners pay for first?", stage: 9, additions: [{ block: "Customer Segments", text: "Independent restaurant owners in Durban" }, { block: "unknown", text: "x" }], assumptions: [{ lens: "Viability", text: "owners will pay monthly" }, { lens: "other", text: "y" }], flags: "none" }));
+    expect(r.stage).toBe(5);
+    expect(r.additions).toEqual([{ block: "segments", text: "Independent restaurant owners in Durban" }]);
+    expect(r.assumptions).toEqual([{ lens: "viability", text: "owners will pay monthly" }]);
+    expect(r.flags).toEqual([]);
   });
   it("ends a stalled turn at exactly 30 seconds and aborts transport", async () => {
     vi.useFakeTimers();

@@ -20,12 +20,12 @@ it("renders an in-chat fallback, allows input and retries the same user turn", a
   const input = screen.getByPlaceholderText(/Answer the coach/);
   fireEvent.change(input, { target: { value: "We offer domestic cleaning to homeowners" } });
   fireEvent.submit(input.closest("form") as HTMLFormElement);
-  await screen.findByText(/lost my train of thought/);
+  await screen.findByText(/couldn.t answer just now/);
   expect(input).toBeEnabled();
   fireEvent.click(screen.getByRole("button", { name: "Retry" }));
   await screen.findByText("Which area are your homeowners in?");
   expect(useCanvasStore.getState().messages.filter((m) => m.role === "user")).toHaveLength(1);
-  expect(screen.queryByText(/lost my train of thought/)).not.toBeInTheDocument();
+  expect(screen.queryByText(/couldn.t answer just now/)).not.toBeInTheDocument();
 });
 
 it("releases a stalled chat at 30 seconds and ignores its late result", async () => {
@@ -39,7 +39,7 @@ it("releases a stalled chat at 30 seconds and ignores its late result", async ()
   fireEvent.submit(input.closest("form") as HTMLFormElement);
   expect(screen.getByRole("status")).toHaveTextContent("Coach is thinking…");
   await act(async () => { await vi.advanceTimersByTimeAsync(30_000); });
-  expect(screen.getByText(/lost my train of thought/)).toBeInTheDocument();
+  expect(screen.getByText(/couldn.t answer just now/)).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Retry" })).toBeEnabled();
   expect(input).toBeEnabled();
   await act(async () => { finish?.({ reply: "Late reply", stage: 5, additions: [], assumptions: [], flags: [] }); });
