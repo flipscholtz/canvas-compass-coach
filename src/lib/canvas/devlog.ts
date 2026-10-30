@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-30",
+    title: "Tour brought up to date",
+    changes: ["The tour now covers the coach's reply style and help requests, the stage list, numbered blocks and evidence for Validated notes, the quick action pills and Skip link, the Explore menu, the new pivot steps, protected demos and the (i) disclaimer."],
+  },
+  {
+    date: "2026-10-30",
     title: "Phone-friendly coach chat",
     changes: ["On phones only the message list scrolls; the chat box stays pinned at the bottom, above the keyboard and clear of the home bar, and jumps to the newest message.", "The advice disclaimer moved to the tour and a small (i) button in the header.", "The stage label opens a list of all five stages.", "Buttons are at least 44px tall on phones, the chat box uses 16px text to stop zooming, and notifications appear at the top away from the chat box."],
   },
