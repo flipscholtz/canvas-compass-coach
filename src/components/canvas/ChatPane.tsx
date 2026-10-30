@@ -67,6 +67,13 @@ export function ChatPane() {
     const list = endRef.current?.parentElement;
     if (list) list.scrollTop = list.scrollHeight;
   }, [s.messages.length, busy]);
+  useEffect(() => {
+    const vv = typeof window !== "undefined" ? window.visualViewport : null;
+    if (!vv) return;
+    const onResize = () => { const list = endRef.current?.parentElement; if (list) list.scrollTop = list.scrollHeight; };
+    vv.addEventListener("resize", onResize);
+    return () => vv.removeEventListener("resize", onResize);
+  }, []);
 
   async function send(text: string, retry?: { failureId: string; userId: string }) {
     const t = text.trim();
@@ -165,8 +172,8 @@ export function ChatPane() {
   }
 
   return (
-    <section className="flex h-full min-h-0 flex-col bg-paper">
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-4">
+    <section className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden bg-paper">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overflow-x-hidden overscroll-contain px-3 py-4">
         {s.messages.filter((m) => m.id !== pendingRetry).map((m) =>
           m.role === "user" ? (
             <div key={m.id} className="flex justify-end">
@@ -246,7 +253,7 @@ export function ChatPane() {
         <div ref={endRef} />
       </div>
 
-      <div className="shrink-0 space-y-2 border-t px-3 py-2.5">
+      <div className="shrink-0 space-y-2 border-t px-3 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))]">
         <TooltipProvider delayDuration={300}>
           <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-0.5 [scrollbar-width:none]" aria-label="Coach actions">
             {ACTIONS.map((q) => {
@@ -263,7 +270,7 @@ export function ChatPane() {
                       onTouchEnd={() => clearTimeout(longPress.current.t)}
                       onClick={(e) => { if (longPress.current.fired) { e.preventDefault(); longPress.current.fired = false; return; } quick(q.key); }}
                       className={cn(
-                        "relative inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors disabled:opacity-50",
+                        "relative inline-flex shrink-0 items-center gap-1 min-h-11 whitespace-nowrap rounded-full border px-3 py-1 text-xs md:min-h-0 md:px-2.5 md:text-[11px] font-medium transition-colors disabled:opacity-50",
                         on ? "animate-pulse border-signal bg-signal text-signal-foreground ring-2 ring-signal/25" : "border-border bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
@@ -297,14 +304,14 @@ export function ChatPane() {
             }}
             aria-label="Message the coach"
             placeholder="Answer the coach…"
-            className="min-h-[64px] resize-none bg-background pr-12"
+            className="min-h-[64px] resize-none bg-background pr-14 text-base md:text-sm"
           />
 
-          <Button aria-label="Send message" type="submit" size="icon" disabled={busy || !input.trim()} className="absolute bottom-2 right-2 size-8">
+          <Button aria-label="Send message" type="submit" size="icon" disabled={busy || !input.trim()} className="absolute bottom-2 right-2 size-11 md:size-8">
             <ArrowUp />
           </Button>
         </form>
-        <button type="button" disabled={busy} onClick={() => quick("skip")} className="text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline disabled:opacity-50">
+        <button type="button" disabled={busy} onClick={() => quick("skip")} className="min-h-11 text-sm text-muted-foreground underline md:min-h-0 md:text-[11px]-offset-2 hover:text-foreground hover:underline disabled:opacity-50">
           Not sure yet? Skip for now
         </button>
       </div>

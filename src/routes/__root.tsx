@@ -77,7 +77,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "CanvasStack — Socratic BMC Co-Pilot" },
       { name: "description", content: "An AI venture coach that challenges your Business Model Canvas assumptions." },
       { property: "og:type", content: "website" },
