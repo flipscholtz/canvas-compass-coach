@@ -14,6 +14,7 @@ describe("canvas presentation feedback", () => {
   it("uses the last coach question rather than incidental reflection words", () => {
     expect(questionBlock("Your costs matter. Which homeowners could you interview?", "costs")).toBe("segments");
     expect(questionBlock("What price would you test?", "segments")).toBe("revenue");
+    expect(questionBlock("Who is this for, and what job or pain do they have?", "segments")).toBe("segments");
     expect(questionBlock("What would you try next?", "channels")).toBe("channels");
   });
 });

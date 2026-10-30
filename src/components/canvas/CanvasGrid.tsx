@@ -69,6 +69,7 @@ function Block({ id, items, prev, readOnly, active, flashing }: { id: BlockId; i
       className={cn(
         "group min-w-0 flex flex-col rounded-lg border bg-card p-2.5 shadow-card transition-shadow",
         active && "ring-2 ring-signal ring-offset-1 ring-offset-background",
+        active && "order-first md:order-none",
         isVP && "border-2 border-signal",
         focus && "ring-2 ring-signal ring-offset-2 ring-offset-background",
         LAYOUT[id],

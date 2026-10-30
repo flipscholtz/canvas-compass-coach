@@ -6,6 +6,7 @@ import { BLOCK_ORDER, type BlockId, type Canvas } from "@/lib/canvas/types";
 /** Presentation only: infer the block being discussed without changing coaching progress. */
 export function questionBlock(text: string, fallback: BlockId): BlockId {
   const question = text.match(/[^.!?\n]*\?/g)?.at(-1) ?? text;
+  if (/who is this for|for whom|who.*job or pain/i.test(question)) return "segments";
   const cues: [BlockId, RegExp][] = [
     ["costs", /cost|expense|margin/i], ["revenue", /price|revenue|pay|charge/i],
     ["keyPartners", /partner|supplier|alliance/i], ["keyResources", /resource|skill|equipment|asset/i],
@@ -36,9 +37,12 @@ export function useCanvasFeedback() {
     const changes = changedNotes(old.canvas, canvas);
     if (!changes.length) return;
     setFlashing(changes.map((i) => i.id));
+  }, [canvas, session]);
+  useEffect(() => {
+    if (!flashing.length) return;
     const timer = setTimeout(() => setFlashing([]), 2400);
     return () => clearTimeout(timer);
-  }, [canvas, session]);
+  }, [flashing]);
   const last = s.messages.filter((m) => m.role === "coach" && !m.coherenceKey && !m.retryUserId).at(-1);
   const fallback = STEPS[s.step]?.block ?? "segments";
   return { activeBlock: questionBlock(last?.text ?? "", fallback), flashing };
