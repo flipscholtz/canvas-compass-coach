@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Lightbulb, Loader2, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Lightbulb, Loader2, Plus, Trash2, ChevronDown } from "lucide-react";
 import { useSuggest } from "./useSuggest";
 import { AssumptionChip } from "./AssumptionChip";
 import { extractAssumptions } from "@/lib/canvas/assumptions";
@@ -39,17 +39,19 @@ const STATUS_LABEL: Record<ItemStatus, string> = {
 };
 const DOT: Record<ItemStatus, string> = { hypothesis: "bg-hypo", validated: "bg-valid", invalidated: "bg-invalid" };
 
-export function CanvasGrid({ canvas, prev, readOnly }: { canvas: Canvas; prev?: Canvas | undefined; readOnly: boolean }) {
+export function CanvasGrid({ canvas, prev, readOnly, activeBlock, flashing = [] }: { canvas: Canvas; prev?: Canvas | undefined; readOnly: boolean; activeBlock?: BlockId; flashing?: string[] }) {
   return (
     <div className="grid grid-cols-1 gap-2 md:auto-rows-[minmax(150px,auto)] md:grid-cols-10">
       {(Object.keys(LAYOUT) as BlockId[]).map((b) => (
-        <Block key={b} id={b} items={canvas[b]} prev={prev?.[b]} readOnly={readOnly} />
+        <Block key={b} id={b} items={canvas[b]} prev={prev?.[b]} readOnly={readOnly} active={activeBlock === b} flashing={flashing} />
       ))}
     </div>
   );
 }
 
-function Block({ id, items, prev, readOnly }: { id: BlockId; items: CanvasItem[]; prev?: CanvasItem[] | undefined; readOnly: boolean }) {
+function Block({ id, items, prev, readOnly, active, flashing }: { id: BlockId; items: CanvasItem[]; prev?: CanvasItem[] | undefined; readOnly: boolean; active: boolean; flashing: string[] }) {
+  const [expanded, setExpanded] = useState(active);
+  useEffect(() => { setExpanded(active); }, [active]);
   const addItems = useCanvasStore((s) => s.addItems);
   const focus = useCanvasStore((s) => !readOnly && !s.viewingId && !!s.versions.at(-1)?.focusBlocks?.includes(id));
   const { suggest, busy } = useSuggest();
@@ -62,8 +64,11 @@ function Block({ id, items, prev, readOnly }: { id: BlockId; items: CanvasItem[]
 
   return (
     <div
+      data-block={id}
+      data-active={active}
       className={cn(
-        "group flex flex-col rounded-lg border bg-card p-3 shadow-card",
+        "group min-w-0 flex flex-col rounded-lg border bg-card p-2.5 shadow-card transition-shadow",
+        active && "ring-2 ring-signal ring-offset-1 ring-offset-background",
         isVP && "border-2 border-signal",
         focus && "ring-2 ring-signal ring-offset-2 ring-offset-background",
         LAYOUT[id],
@@ -71,15 +76,13 @@ function Block({ id, items, prev, readOnly }: { id: BlockId; items: CanvasItem[]
     >
       <div className="mb-2 flex items-start justify-between gap-2">
         <div>
-          <h3 className={cn("font-display text-sm font-semibold leading-tight", isVP && "text-signal")}>
-            {BLOCKS[id].title}
-          </h3>
+          <h3 className={cn("font-display text-sm font-semibold leading-tight break-words", isVP && "text-signal")}><span className="hidden md:inline">{BLOCKS[id].title}</span><Button variant="ghost" className="h-auto w-full justify-start gap-2 whitespace-normal px-0 py-0 text-left md:hidden" aria-expanded={expanded} onClick={() => setExpanded((o) => !o)}>{BLOCKS[id].title}<ChevronDown className={cn("size-3 shrink-0 transition-transform", expanded && "rotate-180")} /><span className="text-[10px] text-muted-foreground">{items.length}</span></Button></h3>
           <p className="text-[11px] text-muted-foreground">{BLOCKS[id].hint}</p>
           {focus && <p className="mt-1 font-mono text-[9px] uppercase tracking-wider text-signal">Pivot: rewrite this block</p>}
         </div>
         {!readOnly && (
           <div className="flex shrink-0">
-            <button
+            <Button variant="ghost" size="icon"
               aria-label={`Suggest assumptions for ${BLOCKS[id].title}`}
               title="Suggest assumptions to test"
               disabled={!!busy}
@@ -87,20 +90,20 @@ function Block({ id, items, prev, readOnly }: { id: BlockId; items: CanvasItem[]
               className="rounded p-1 text-muted-foreground opacity-60 hover:bg-muted hover:text-signal hover:opacity-100 disabled:opacity-30"
             >
               {busy === id ? <Loader2 className="size-3.5 animate-spin" /> : <Lightbulb className="size-3.5" />}
-            </button>
-            <button
+            </Button>
+            <Button variant="ghost" size="icon"
               aria-label={`Add to ${BLOCKS[id].title}`}
-              onClick={() => setOpen((o) => !o)}
+              onClick={() => { setExpanded(true); setOpen((o) => !o); }}
               className="rounded p-1 text-muted-foreground opacity-60 hover:bg-muted hover:opacity-100"
             >
               <Plus className="size-3.5" />
-            </button>
+            </Button>
           </div>
         )}
       </div>
-      <ul className="flex flex-1 flex-col gap-1.5">
+      <ul className={cn("flex-1 flex-col gap-1.5 md:flex", expanded ? "flex" : "hidden")}>
         {items.map((item) => (
-          <li key={item.id}>
+          <li key={item.id} data-note={item.id} className={cn("rounded-md", flashing.includes(item.id) && "canvas-note-flash")}>
             <Note block={id} item={item} readOnly={readOnly} isNew={!!prev && !prevTexts.has(item.text.toLowerCase())} />
           </li>
         ))}
@@ -194,7 +197,7 @@ function Note({ block, item, readOnly, isNew }: { block: BlockId; item: CanvasIt
             >
               <span className={cn("size-1.5 rounded-full", DOT[st])} />
               {st === "hypothesis" ? "Untested" : st}
-            </button>
+            </Button>
           ))}
         </div>
         {item.evidence && !verdict && (
