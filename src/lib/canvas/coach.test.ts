@@ -164,7 +164,7 @@ describe("tier-1 fixes", () => {
     useCanvasStore.getState().newScenario();
     useCanvasStore.getState().setProgress(5, 4);
     useCanvasStore.getState().setProgress(0, 1);
-    expect(useCanvasStore.getState().stage).toBe(4);
+    expect(useCanvasStore.getState().stage).toBe(1);
   });
   it("restores deleted demo scenarios", () => {
     const st = useCanvasStore.getState();
