@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Compass, AlertTriangle, Loader2, RotateCcw } from "lucide-react";
+import { ArrowUp, Compass, AlertTriangle, Loader2, RotateCcw, MoreHorizontal, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCanvasStore } from "@/lib/canvas/store";
-import { STAGES } from "@/lib/canvas/types";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { changedNotes } from "./useCanvasFeedback";
 import { coachTurn, STEPS } from "@/lib/canvas/coach";
 import { useRiskiest } from "./useRiskiest";
 import { AssumptionChip } from "./AssumptionChip";
@@ -26,6 +27,7 @@ export function ChatPane() {
   const s = useCanvasStore();
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [receipts, setReceipts] = useState<Record<string, string[]>>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -37,7 +39,8 @@ export function ChatPane() {
   const live = !!s.apiKey || serverAi;
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
+    const list = endRef.current?.parentElement;
+    if (list) list.scrollTop = list.scrollHeight;
   }, [s.messages.length, busy]);
 
   async function send(text: string, retry?: { failureId: string; userId: string }) {
@@ -59,6 +62,14 @@ export function ChatPane() {
       if (!currentSession()) return;
       if (retry) s.replaceMessage(retry.failureId, message);
       else s.pushMessage(message);
+      const after = useCanvasStore.getState();
+      const canvas = after.versions.at(-1)?.canvas;
+      const messageId = retry?.failureId ?? after.messages.at(-1)?.id;
+      if (canvas && messageId) {
+        const changes = changedNotes(head, canvas);
+        const notes = [...new Set(changes.map((c) => `${c.added ? "Added to" : "Updated in"} ${BLOCKS[c.block].title}`))];
+        if (notes.length) setReceipts((old) => ({ ...old, [messageId]: notes }));
+      }
     };
     setPendingRetry(retry?.failureId ?? null);
     setBusy(true);
@@ -127,36 +138,7 @@ export function ChatPane() {
 
   return (
     <section className="flex h-full min-h-0 flex-col bg-paper">
-      <div className="border-b px-5 py-4">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-lg font-semibold">Socratic Coach</h2>
-          <span className="rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-            {s.apiKey ? `Live · ${s.model}` : serverAi ? "Live · shared demo AI" : "Demo mode · offline"}
-          </span>
-        </div>
-        <ol className="flex gap-1">
-          {STAGES.map((st) => (
-            <li key={st.id} className="flex-1" title={st.label}>
-              <div
-                className={cn(
-                  "h-1.5 rounded-full transition-colors",
-                  st.id < s.stage ? "bg-primary" : st.id === s.stage ? "bg-signal" : "bg-muted",
-                )}
-              />
-              <p
-                className={cn(
-                  "mt-1.5 truncate font-mono text-[10px] uppercase tracking-wide",
-                  st.id === s.stage ? "text-foreground" : "text-muted-foreground",
-                )}
-              >
-                {st.id}. {st.short}
-              </p>
-            </li>
-          ))}
-        </ol>
-      </div>
-
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-3 py-4">
         {s.messages.filter((m) => m.id !== pendingRetry).map((m) =>
           m.role === "user" ? (
             <div key={m.id} className="flex justify-end">
@@ -169,8 +151,9 @@ export function ChatPane() {
               <div className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-signal text-signal-foreground">
                 <Compass className="size-4" />
               </div>
-              <div className="max-w-[90%] space-y-2">
+              <div className="min-w-0 flex-1 space-y-2">
                 <p className="whitespace-pre-line break-words text-sm leading-relaxed">{m.text.trim() || COACH_FALLBACK}</p>
+                {receipts[m.id]?.map((note) => <p key={note} className="flex items-center gap-1 text-[11px] text-valid"><Check className="size-3" />{note}</p>)}
                 {m.helpOffer && (
                   <div className="space-y-2 border-l-2 border-signal pl-3 text-xs">
                     {m.helpOffer.decision ? (
@@ -180,7 +163,7 @@ export function ChatPane() {
                         <p>Proposed untested assumption · {BLOCKS[m.helpOffer.block].title}: “{m.helpOffer.claim}”</p>
                         <p>Record assumption and create a Test Card</p>
                         <div className="flex gap-2">
-                          <Button size="sm" disabled={busy || !!s.viewingId || m.helpOffer.versionId !== s.versions.at(-1)?.id} onClick={() => s.resolveHelpOffer(m.id, true)}>Yes</Button>
+                          <Button size="sm" disabled={busy || !!s.viewingId || m.helpOffer.versionId !== s.versions.at(-1)?.id} onClick={() => { s.resolveHelpOffer(m.id, true); const offer = useCanvasStore.getState().messages.find((item) => item.id === m.id)?.helpOffer; if (offer?.decision === "accepted") setReceipts((old) => ({ ...old, [m.id]: [`Added to ${BLOCKS[offer.block].title}`] })); }}>Yes</Button>
                           <Button size="sm" variant="outline" disabled={busy} onClick={() => s.resolveHelpOffer(m.id, false)}>Not now</Button>
                         </div>
                         {m.helpOffer.versionId !== s.versions.at(-1)?.id && <p className="text-muted-foreground">This offer belongs to an earlier canvas. Ask again on your working canvas.</p>}
@@ -235,27 +218,7 @@ export function ChatPane() {
         <div ref={endRef} />
       </div>
 
-      <div className="border-t px-5 py-4">
-        <div className="mb-3 flex flex-wrap gap-1.5">
-          {QUICK.map((q) => (
-            <Button
-              key={q.key}
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => quick(q.key)}
-              disabled={busy}
-              className={cn(
-                "h-auto whitespace-normal rounded-full border px-2.5 py-1 text-xs transition-colors disabled:opacity-50",
-                q.key === "risk"
-                  ? "border-signal bg-signal text-signal-foreground hover:bg-signal/90"
-                  : "bg-background text-muted-foreground hover:border-signal hover:text-foreground",
-              )}
-            >
-              {q.label}
-            </Button>
-          ))}
-        </div>
+      <div className="shrink-0 border-t px-3 py-3">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -265,7 +228,6 @@ export function ChatPane() {
         >
           <Textarea
             ref={inputRef}
-            autoFocus
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
@@ -274,10 +236,15 @@ export function ChatPane() {
                 send(input);
               }
             }}
-            placeholder="Answer the coach… (Enter to send)"
-            className="min-h-[72px] resize-none bg-background pr-12"
+            aria-label="Message the coach"
+            placeholder="Answer the coach…"
+            className="min-h-[72px] resize-none bg-background pr-12 pb-9"
           />
-          <Button type="submit" size="icon" disabled={busy || !input.trim()} className="absolute bottom-2 right-2 size-8">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild><Button type="button" variant="ghost" size="icon" className="absolute bottom-2 left-2 size-7" aria-label="Coach actions" title="Coach actions" disabled={busy}><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
+            <DropdownMenuContent align="start">{QUICK.map((q) => <DropdownMenuItem key={q.key} disabled={busy} onClick={() => quick(q.key)}>{q.label}</DropdownMenuItem>)}</DropdownMenuContent>
+          </DropdownMenu>
+          <Button aria-label="Send message" type="submit" size="icon" disabled={busy || !input.trim()} className="absolute bottom-2 right-2 size-8">
             <ArrowUp />
           </Button>
         </form>

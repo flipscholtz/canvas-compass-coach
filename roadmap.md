@@ -6,3 +6,4 @@
 - [x] Add contextual research and clarification help with explicit assumption/Test Card consent.
 - [x] Test and verify help guidance, Yes / Not now, and persistence in the app.
 - [x] Apply facilitator-style coaching to live, offline and help replies; test and verify the conversation.
+- [x] Make the canvas-first desktop/mobile workspace, compact menus and linked coach feedback; verify existing flows.

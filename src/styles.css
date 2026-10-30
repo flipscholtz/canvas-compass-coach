@@ -79,6 +79,7 @@
   --invalid: oklch(0.55 0.18 27);
   --invalid-soft: oklch(0.94 0.04 27);
   --shadow-card: 0 1px 0 oklch(0.22 0.03 255 / 4%), 0 6px 18px -10px oklch(0.22 0.03 255 / 18%);
+  --shadow-note-feedback: 0 0 0 2px var(--signal), 0 0 18px color-mix(in oklab, var(--signal) 35%, transparent);
 }
 
 @layer base {
@@ -101,4 +102,13 @@
     linear-gradient(oklch(0.22 0.03 255 / 4%) 1px, transparent 1px),
     linear-gradient(90deg, oklch(0.22 0.03 255 / 4%) 1px, transparent 1px);
   background-size: 22px 22px;
+}
+
+.canvas-note-flash { animation: note-feedback 2.4s ease-out; }
+@keyframes note-feedback {
+  0%, 30% { box-shadow: var(--shadow-note-feedback); }
+  100% { box-shadow: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .canvas-note-flash { animation: none; outline: 2px solid var(--signal); }
 }

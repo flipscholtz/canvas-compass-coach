@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-30",
+    title: "Canvas-first workspace",
+    changes: ["The canvas now takes two-thirds of the desktop workspace, with a smaller coach that collapses to a slim tab; on mobile the coach opens over only the bottom 60% of the screen.", "Explore holds Journey, Changelog & Decisions and Experiments; Versions gathers history, snapshots, pivots, exports and saved versions.", "The discussed block is highlighted, changed stickies briefly glow, and coach drafts show inline confirmations. Stage progress is compact and chat has one scrolling message list."],
+  },
+  {
+    date: "2026-10-30",
     title: "Coach leads like a workshop facilitator",
     changes: ["Live and offline replies reflect your words, add useful BMC guidance and end with one focused question.", "Partial answers become provisional drafts; help stays conversational and stage transitions ask permission before moving on."],
   },
