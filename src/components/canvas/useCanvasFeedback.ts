@@ -45,5 +45,6 @@ export function useCanvasFeedback() {
   }, [flashing]);
   const last = s.messages.filter((m) => m.role === "coach" && !m.coherenceKey && !m.retryUserId).at(-1);
   const fallback = STEPS[s.step]?.block ?? "segments";
+  if (last && STEPS[s.step]?.block && last.text.includes(STEPS[s.step]!.question)) return { activeBlock: fallback, flashing };
   return { activeBlock: questionBlock(last?.text ?? "", fallback), flashing };
 }

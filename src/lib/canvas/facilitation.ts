@@ -28,7 +28,7 @@ export function ensureFacilitatorQuestion(reply: string, userText: string, stage
   const question = block ? FOCUS_QUESTIONS[block] : stage === 1
     ? "Which recent customer experience shows that this pain matters?"
     : stage === 5 ? "What result from a small test would change your decision?"
-    : stage === 3 ? FOCUS_QUESTIONS.keyActivities
+    : stage === 3 ? FOCUS_QUESTIONS.keyResources
     : stage === 4 ? FOCUS_QUESTIONS.revenue : FOCUS_QUESTIONS.valueProps;
   const statement = reply.split(/\?/)[0]?.trim().split(/\s+/).slice(0, 35).join(" ").replace(/[.!]+$/, "");
   return facilitate(userText, `${statement || "A recent real example will help us separate this hypothesis from evidence"}.`, question);

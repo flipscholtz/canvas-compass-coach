@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-30",
+    title: "Coach follows the recommended canvas order",
+    changes: ["The coach now works through Customer Segments, Value Propositions, Channels, Customer Relationships, Revenue Streams, Key Resources, Key Activities, Key Partners and Cost Structure.", "Before the value proposition it asks about the customer's jobs, pains and gains.", "Each new block opens with one sentence explaining how it builds on the earlier ones.", "Canvas blocks show their order number, and the block the coach is working on is highlighted.", "Jumping ahead before customers and value propositions have content gets a gentle recommendation to go back, which you can override; stage summaries mention empty or thin blocks."],
+  },
+  {
+    date: "2026-10-30",
     title: "Quieter coach actions",
     changes: ["Riskiest assumption, Coherence check and Challenge VP are now small outlined pills in one scrollable row above the chat box, each with a one-line tooltip (long-press on mobile).", "When an action becomes relevant the coach suggests it in one sentence and that pill is highlighted until you use it or the chat moves on.", "Skip is now a 'Not sure yet? Skip for now' link that records the topic as an untested assumption."],
   },
