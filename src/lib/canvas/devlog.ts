@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-30",
+    title: "Coach handles long, detailed answers",
+    changes: ["Fixed the cause of \"lost my train of thought\": the coach threw away a whole reply when it named a canvas block slightly differently (e.g. \"Customer Segments\"). It now keeps the reply and only drops the bits it can't place.", "If the live coach does fail, your message stays, you get a Retry button and an offline follow-up question instead of a dead end. Nothing is marked Validated without evidence."],
+  },
+  {
+    date: "2026-10-30",
     title: "Tour brought up to date",
     changes: ["The tour now covers the coach's reply style and help requests, the stage list, numbered blocks and evidence for Validated notes, the quick action pills and Skip link, the Explore menu, the new pivot steps, protected demos and the (i) disclaimer."],
   },

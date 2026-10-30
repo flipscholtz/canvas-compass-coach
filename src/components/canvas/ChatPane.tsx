@@ -127,7 +127,10 @@ export function ChatPane() {
       }
     } catch (e) {
       console.error("[CanvasStack coach] Turn failed", e);
-      publish({ role: "coach", text: COACH_FALLBACK, retryUserId: userId });
+      // Keep the conversation moving with a contextual offline follow-up; nothing is added to the canvas.
+      let followUp = "";
+      try { followUp = coachTurn(head, s.step, t, history).reply.trim(); } catch { /* keep plain fallback */ }
+      publish({ role: "coach", text: followUp ? `${COACH_FALLBACK}\n\n${followUp}` : COACH_FALLBACK, retryUserId: userId });
     } finally {
       setBusy(false);
       busyRef.current = false;
