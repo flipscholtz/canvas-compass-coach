@@ -33,7 +33,7 @@ export const STEPS: Step[] = [
     block: "valueProps",
     stage: 2,
     question:
-      "What job does that segment hire you for? Describe the gain you create or the pain you relieve — in their words, not yours.",
+      "What pain does that segment want relieved, in their own words?",
   },
   {
     block: "channels",
@@ -51,13 +51,13 @@ export const STEPS: Step[] = [
     block: "keyActivities",
     stage: 3,
     question:
-      "Moving backstage. What are the two or three activities you must perform brilliantly for that value proposition to actually work?",
+      "Which delivery activity needs to work reliably first?",
   },
   {
     block: "keyResources",
     stage: 3,
     question:
-      "Which resources are indispensable — people, data, IP, capital, licences? Be honest about what you already have versus what you'd need.",
+      "Which essential resource do you still need to secure?",
   },
   {
     block: "keyPartners",

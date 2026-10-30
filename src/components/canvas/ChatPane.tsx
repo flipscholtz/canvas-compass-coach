@@ -177,7 +177,8 @@ export function ChatPane() {
                       <p className="text-muted-foreground">{m.helpOffer.decision === "accepted" ? `Saved as untested in ${BLOCKS[m.helpOffer.block].title}; Test Card created.` : "Not recorded. You can keep exploring."}</p>
                     ) : (
                       <>
-                        <p>Record this assumption and create a Test Card?</p>
+                        <p>Proposed untested assumption · {BLOCKS[m.helpOffer.block].title}: “{m.helpOffer.claim}”</p>
+                        <p>Record assumption and create a Test Card</p>
                         <div className="flex gap-2">
                           <Button size="sm" disabled={busy || !!s.viewingId || m.helpOffer.versionId !== s.versions.at(-1)?.id} onClick={() => s.resolveHelpOffer(m.id, true)}>Yes</Button>
                           <Button size="sm" variant="outline" disabled={busy} onClick={() => s.resolveHelpOffer(m.id, false)}>Not now</Button>
