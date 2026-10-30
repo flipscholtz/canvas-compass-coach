@@ -62,7 +62,7 @@ export const STEPS: Step[] = [
   {
     block: "keyPartners",
     stage: 3,
-    question: "Who will you depend on that you don't control? Name suppliers, platforms or alliances.",
+    question: "Which supplier, platform or partner would you depend on first?",
   },
   {
     block: "revenue",
@@ -200,6 +200,9 @@ export function coachTurn(canvas: Canvas, stepIndex: number, answer: string, his
   const awaitingMove = /Shall we move on to /i.test(previous) && next.stage > step.stage;
   if (awaitingMove && /^(yes|ok(?:ay)?|sure|let['’]s|move on|continue|go ahead)\b/i.test(message)) {
     return { reply: facilitate(message, "We'll carry those hypotheses forward and keep their evidence separate.", next.question), additions: [], flags: [], assumptions: [], nextStep: stepIndex + 1, stage: next.stage };
+  }
+  if (awaitingMove && /^(no|not yet|stay|wait)\b/i.test(message)) {
+    return { reply: facilitate(message, "We can strengthen this stage before moving on.", step.block ? FOCUS_QUESTIONS[step.block] : "Which recent customer experience still needs checking?"), additions: [], flags: [], assumptions: [], nextStep: stepIndex, stage: step.stage };
   }
   const help = coachHelp({ text: message, canvas, history, block: step.block, question: step.question });
   if (help) return { reply: help.reply, additions: [], flags: [], assumptions: [], nextStep: stepIndex, stage: step.stage };
