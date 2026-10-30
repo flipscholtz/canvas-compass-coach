@@ -100,7 +100,7 @@ export function analyzeCoherence(canvas: Canvas) {
   // Include every recorded entry so a changed block is always visible, even when no rule is triggered.
   findings.push({ id: "evidence", kind: "recorded", priority: 5, title: "Recorded information is not automatically confirmed", blocks: [...BLOCK_ORDER], entries: BLOCK_ORDER.flatMap((block) => canvas[block].map((item) => ({ block, item }))), why: "Untested hypotheses remain untested. Items marked validated retain that user-recorded status, but this checker cannot verify supporting evidence. Invalidated entries are excluded from active-model checks.", action: "For any claim you consider confirmed, record the test result and supporting evidence in the decision log; a drafted Test Card is not a completed test.", theme: "evidence" });
   return {
-    summary: occupied.length ? `Reviewed all nine blocks (${occupied.length} with active entries). No genuine contradiction is established by this local rule-based review. The findings below distinguish missing information and potential tensions; they are not proof of inconsistency.` : "Reviewed all nine blocks. There is insufficient active information for meaningful coherence analysis. Start with the customer, their problem and the promised outcome, then establish delivery and finances.",
+    summary: occupied.length ? `Reviewed all nine blocks (${occupied.length} filled). Biggest gaps first — open questions, not proof the model is wrong.` : "Reviewed all nine blocks. There is insufficient active information for meaningful coherence analysis yet: start with the customer, their problem and the promised outcome.",
     findings: findings.sort((a, b) => a.priority - b.priority),
     evidence: evidenceCounts(canvas),
   };
