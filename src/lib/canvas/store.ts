@@ -197,7 +197,7 @@ export const useCanvasStore = create<State>()(
         });
         return added;
       },
-      setProgress: (step, stage) => set((s) => ({ step, stage: Math.max(s.stage, stage) as Stage })),
+      setProgress: (step, stage) => set((s) => ({ step, stage })),
       commitVersion: (label, note, focusBlocks) =>
         set((s) => {
           const head = s.versions[s.versions.length - 1]!;

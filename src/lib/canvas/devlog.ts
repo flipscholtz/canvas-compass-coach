@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-30",
+    title: "Stage indicator follows the current block",
+    changes: ["The stage shown above the coach now matches the block being discussed, so Key Resources, Activities and Partners show Feasibility and Cost Structure shows Viability, even if that means moving back a stage."],
+  },
+  {
+    date: "2026-10-30",
     title: "Coach follows the recommended canvas order",
     changes: ["The coach now works through Customer Segments, Value Propositions, Channels, Customer Relationships, Revenue Streams, Key Resources, Key Activities, Key Partners and Cost Structure.", "Before the value proposition it asks about the customer's jobs, pains and gains.", "Each new block opens with one sentence explaining how it builds on the earlier ones.", "Canvas blocks show their order number, and the block the coach is working on is highlighted.", "Jumping ahead before customers and value propositions have content gets a gentle recommendation to go back, which you can override; stage summaries mention empty or thin blocks."],
   },
