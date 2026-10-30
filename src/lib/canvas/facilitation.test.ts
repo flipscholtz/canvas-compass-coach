@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { coachTurn } from "./coach";
 import { coachHelp } from "./help";
+import { ensureFacilitatorQuestion } from "./facilitation";
 import { emptyCanvas, type ChatMessage } from "./types";
 
 describe("facilitator turn rules", () => {
+  it("repairs live replies missing a question or containing several", () => {
+    for (const text of ["You mentioned homeowners.", "Who pays? How much?"]) {
+      const reply = ensureFacilitatorQuestion(text, "Domestic cleaning for homeowners", 1);
+      expect(reply.match(/\?/g)).toHaveLength(1);
+      expect(reply.endsWith("?")).toBe(true);
+    }
+  });
   it.each([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])("ends step %i with exactly one question in fewer than 80 words", (step) => {
     const r = coachTurn(emptyCanvas(), step, "Homeowners hire reliable domestic cleaners weekly");
     expect(r.reply.match(/\?/g)).toHaveLength(1);

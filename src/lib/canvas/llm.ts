@@ -1,7 +1,7 @@
 import { stripBelievePrefix } from "./assumptions";
 import { serverChat } from "./llm.functions";
 import { parseCoachResponse } from "./chat-recovery";
-import { FACILITATOR_PROMPT } from "./facilitation";
+import { FACILITATOR_PROMPT, ensureFacilitatorQuestion } from "./facilitation";
 
 type Msg = { role: "system" | "user" | "assistant"; content: string };
 
@@ -79,7 +79,7 @@ export async function llmTurn(opts: {
   const parsed = parseCoachResponse(content);
   const stage = Math.min(5, Math.max(1, Number(parsed.stage) || 1)) as Stage;
   return {
-    reply: String(parsed.reply ?? "Tell me more."),
+    reply: ensureFacilitatorQuestion(parsed.reply, [...opts.history].reverse().find((m) => m.role === "user")?.text ?? "Let's continue", opts.stage ?? stage, parsed.additions[0]?.block as BlockId | undefined),
     stage,
     additions: (Array.isArray(parsed.additions) ? parsed.additions : []).filter(
       (a: { block: string; text: string }) => BLOCK_ORDER.includes(a.block as BlockId) && a.text,
