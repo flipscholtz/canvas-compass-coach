@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { completeAccountTour, readTourCompletion, shouldShowTour } from "@/lib/canvas/tour";
 import { getAdminAccess } from "@/lib/canvas/admin.functions";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Info, Eye, Layers, Settings, Compass, X, ChevronDown, Route as JourneyIcon, FlaskConical, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -23,7 +24,7 @@ import { TestCards } from "@/components/canvas/TestCards";
 import { LogPanel } from "@/components/canvas/LogPanel";
 import { JourneyPanel } from "@/components/canvas/JourneyPanel";
 import { ScenarioMenu } from "@/components/canvas/ScenarioMenu";
-import { WelcomeWizard, welcomeSeen, TourIcon } from "@/components/canvas/WelcomeWizard";
+import { WelcomeWizard, TourIcon } from "@/components/canvas/WelcomeWizard";
 import { SuggestAllButton } from "@/components/canvas/SuggestAllButton";
 import { AccountMenu } from "@/components/canvas/AccountMenu";
 
@@ -47,6 +48,10 @@ function Index() {
 
 function App() {
   const s = useCanvasStore();
+  const queryClient = useQueryClient();
+  const tourQueryKey = ["account-tour", s.author];
+  const { data: tourCompleted, isSuccess: tourLoaded } = useQuery({ queryKey: tourQueryKey, queryFn: readTourCompletion, staleTime: 0, refetchOnWindowFocus: false });
+  const checkedTour = useRef(false);
   const { data: adminAccess } = useQuery({ queryKey: ["admin-access"], queryFn: () => getAdminAccess(), staleTime: 0 });
   const mobile = useIsMobile();
   const [vv, setVv] = useState({ height: 844, bottom: 0, keyboard: false });
@@ -67,7 +72,12 @@ function App() {
   const [mobileCoach, setMobileCoach] = useState(false);
   const [settings, setSettings] = useState(false);
   const [tour, setTour] = useState(false);
-  useEffect(() => { if (!welcomeSeen()) setTour(true); }, []);
+  useEffect(() => {
+    if (tourLoaded && !checkedTour.current) {
+      checkedTour.current = true;
+      if (shouldShowTour(tourCompleted)) setTour(true);
+    }
+  }, [tourLoaded, tourCompleted]);
   useEffect(() => { if (tour) { setRightView("canvas"); setCoachOpen(true); } }, [tour]);
   const [key, setKey] = useState(s.apiKey);
   const [model, setModel] = useState(s.model);
@@ -92,7 +102,7 @@ function App() {
   return (
     <div className="flex h-dvh flex-col overflow-hidden overscroll-none">
       <Toaster position="top-center" offset="max(16px, env(safe-area-inset-top))" />
-      <WelcomeWizard open={tour} onOpenChange={setTour} />
+      <WelcomeWizard open={tour} onOpenChange={setTour} onComplete={async () => { await completeAccountTour(); queryClient.setQueryData(tourQueryKey, true); }} />
       <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b bg-paper px-3 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))] sm:flex sm:justify-between sm:gap-3 sm:px-4 sm:py-3 lg:px-6">
         <div className="flex min-w-0 flex-1 basis-48 items-center gap-3">
           <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-ink text-ink-foreground">

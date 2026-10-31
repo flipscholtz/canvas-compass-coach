@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-31",
+    title: "Account-specific first-load tour",
+    changes: ["Tour completion is now saved to each account in Cloud, so it follows you across browsers and devices.", "The tour opens on login until Get started completes it; closing or skipping leaves it available on the next login.", "The Tour button still replays the tour at any time."],
+  },
+  {
+    date: "2026-10-31",
     title: "In-app account administration",
     changes: ["Added an Admin tab for authorised organisers to create username/password accounts without collecting personal emails.", "Account removal requires confirmation and deletes private saved scenarios; administrator accounts are protected.", "Account management is checked on the server; existing private scenarios, shared demos and sign-in protections remain unchanged.", "The first admin account requires a private password supplied through organiser setup."],
   },

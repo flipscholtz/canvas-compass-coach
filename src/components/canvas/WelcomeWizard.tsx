@@ -3,8 +3,6 @@ import { Route, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const KEY = "canvasstack-welcome-seen";
-
 /** Live tour: each step points at an element marked with data-tour="…"; steps without a visible target are centred. */
 const STEPS: { target?: string; title: string; body: string }[] = [
   { title: "Welcome to CanvasStack", body: "A Socratic co-pilot for your Business Model Canvas. It asks questions rather than giving answers, so you see what you're taking for granted. Sign in with your organiser-provided account and save scenarios to Cloud. Note: CanvasStack is a coaching aid, not professional legal, financial or regulatory advice." },
@@ -43,14 +41,22 @@ function cardPos(r: Rect | null, cardH: number) {
   return { top: clampTop(r.top + 24), left: clampLeft(r.left + 24) };
 }
 
-export function WelcomeWizard({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+export function WelcomeWizard({ open, onOpenChange, onComplete }: { open: boolean; onOpenChange: (o: boolean) => void; onComplete: () => Promise<void> }) {
   const [i, setI] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
   const [rect, setRect] = useState<Rect | null>(null);
   const [cardH, setCardH] = useState(220);
-  useEffect(() => { if (open) setI(0); }, [open]);
-  const st = STEPS[i]!;
+  useEffect(() => { if (open) { setI(0); setError(""); } }, [open]);
+  const st = STEPS[i] ?? { title: "Welcome to CanvasStack", body: "You can replay the tour at any time." };
   const last = i === STEPS.length - 1;
-  const close = useCallback(() => { localStorage.setItem(KEY, "1"); onOpenChange(false); }, [onOpenChange]);
+  const close = useCallback(() => { if (!saving) onOpenChange(false); }, [onOpenChange, saving]);
+  async function finish() {
+    setSaving(true); setError("");
+    try { await onComplete(); onOpenChange(false); }
+    catch (failure) { setError(failure instanceof Error ? failure.message : "Couldn't save tour completion. Please try again."); }
+    finally { setSaving(false); }
+  }
 
   const measure = useCallback(() => {
     const el = findTarget(st.target);
@@ -105,7 +111,7 @@ export function WelcomeWizard({ open, onOpenChange }: { open: boolean; onOpenCha
       >
         <div className="mb-1 flex items-start justify-between gap-2">
           <div className="font-mono text-[10px] uppercase tracking-widest text-signal">Step {i + 1} of {STEPS.length}</div>
-          <button aria-label="Close tour" onClick={close} className="text-muted-foreground hover:text-foreground"><X className="size-4" /></button>
+          <Button aria-label="Close tour" variant="ghost" size="icon" disabled={saving} onClick={close} className="size-8 text-muted-foreground"><X className="size-4" /></Button>
         </div>
         <h2 className="font-display text-lg font-semibold">{st.title}</h2>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{st.body}</p>
@@ -115,16 +121,16 @@ export function WelcomeWizard({ open, onOpenChange }: { open: boolean; onOpenCha
           ))}
         </div>
         <div className="mt-3 flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={close}>Skip</Button>
+          <Button variant="ghost" size="sm" disabled={saving} onClick={close}>Skip</Button>
           <div className="flex gap-2">
-            {i > 0 && <Button variant="outline" size="sm" onClick={() => setI(i - 1)}>Back</Button>}
-            <Button size="sm" onClick={() => (last ? close() : setI(i + 1))}>{last ? "Get started" : "Next"}</Button>
+            {i > 0 && <Button variant="outline" size="sm" disabled={saving} onClick={() => setI(i - 1)}>Back</Button>}
+            <Button size="sm" disabled={saving} onClick={() => (last ? void finish() : setI(i + 1))}>{saving ? "Saving…" : last ? "Get started" : "Next"}</Button>
           </div>
         </div>
+        {error && <p role="alert" className="mt-3 text-sm text-destructive">{error}</p>}
       </div>
     </div>
   );
 }
 
-export const welcomeSeen = () => localStorage.getItem(KEY) === "1";
 export { Route as TourIcon };
