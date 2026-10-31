@@ -10,4 +10,4 @@
 - [x] Enable Cloud, manual username login and account-private scenarios with shared demos.
 - [x] Preserve browser-only work separately and verify account isolation, save/load and sign-out.
 - [x] Add secure in-app username-only account administration; preserve trusted sign-in and scenario ownership per the approved plan.
-- [ ] Store account tour completion, verify completion/replay, and reset assessment for next login.
+- [x] Store account tour completion, verify completion/replay, and reset assessment for next login.
