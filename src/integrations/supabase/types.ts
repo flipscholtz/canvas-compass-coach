@@ -14,6 +14,29 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_preferences: {
+        Row: {
+          tour_completed: boolean
+          user_id: string
+        }
+        Insert: {
+          tour_completed?: boolean
+          user_id: string
+        }
+        Update: {
+          tour_completed?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       account_scenarios: {
         Row: {
           data: Json
