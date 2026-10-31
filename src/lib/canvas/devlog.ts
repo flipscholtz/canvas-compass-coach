@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-31",
+    title: "Clearer Cloud scenario picker",
+    changes: ["Removed the previous browser-work import section from the scenario picker.", "Your private saved scenarios and protected built-in demos now appear in separate labelled sections.", "Demo rows show Built-in demo rather than a misleading saved date; existing Cloud scenarios and browser drafts are unchanged."],
+  },
+  {
+    date: "2026-10-31",
     title: "Account-specific first-load tour",
     changes: ["Tour completion is now saved to each account in Cloud, so it follows you across browsers and devices.", "The tour opens on login until Get started completes it; closing or skipping leaves it available on the next login.", "The Tour button still replays the tour at any time."],
   },
