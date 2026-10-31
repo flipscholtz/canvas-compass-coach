@@ -11,3 +11,5 @@
 - [x] Preserve browser-only work separately and verify account isolation, save/load and sign-out.
 - [x] Add secure in-app username-only account administration; preserve trusted sign-in and scenario ownership per the approved plan.
 - [x] Store account tour completion, verify completion/replay, and reset assessment for next login.
+- [ ] Remove previous browser imports and separate private scenarios from built-in demos; verify the picker.
+- [ ] Confirm shared OpenAI availability for all accounts and remove personal-key settings from the workspace.
