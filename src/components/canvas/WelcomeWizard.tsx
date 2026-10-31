@@ -48,7 +48,7 @@ export function WelcomeWizard({ open, onOpenChange, onComplete }: { open: boolea
   const [rect, setRect] = useState<Rect | null>(null);
   const [cardH, setCardH] = useState(220);
   useEffect(() => { if (open) { setI(0); setError(""); } }, [open]);
-  const st = STEPS[i] ?? STEPS[0];
+  const st = STEPS[i] ?? { title: "Welcome to CanvasStack", body: "You can replay the tour at any time." };
   const last = i === STEPS.length - 1;
   const close = useCallback(() => { if (!saving) onOpenChange(false); }, [onOpenChange, saving]);
   async function finish() {
