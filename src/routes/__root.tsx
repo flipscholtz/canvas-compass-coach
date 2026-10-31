@@ -125,7 +125,6 @@ function RootComponent() {
       if (event === "SIGNED_OUT") {
         clearAccountWorkspace();
         void queryClient.cancelQueries(); queryClient.clear();
-        void router.navigate({ to: "/auth", replace: true });
       } else queryClient.invalidateQueries();
       void router.invalidate();
     });

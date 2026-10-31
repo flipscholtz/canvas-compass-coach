@@ -278,7 +278,8 @@ export const useCanvasStore = create<State>()(
     {
       name: "canvasstack-signed-out",
       skipHydration: true,
-      partialize: ({ drawerOpen: _d, highlightCardId: _h, ...rest }) => rest,
+      partialize: ({ drawerOpen: _d, highlightCardId: _h, apiKey: _key, ...rest }) => rest,
+      merge: (persisted, current) => ({ ...current, ...(persisted as Partial<State>), apiKey: "" }),
     },
   ),
 );
