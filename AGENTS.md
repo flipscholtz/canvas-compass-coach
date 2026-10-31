@@ -16,6 +16,7 @@
 - Canvas editing remains in the client-side zustand store with account-keyed browser drafts; explicit scenario saves use Cloud tables with owner-scoped RLS, so private scenarios sync without exposing another account's work.
 - Protected canvas/report/designer routes share the client-only authenticated layout and account activation; sign-out clears workspace and caches to prevent cross-account state leakage.
 - Username credentials map consistently to synthetic account emails; profiles are trigger-created with immutable unique usernames, and organiser-created confirmed accounts replace public signup.
+- In-app account administration uses authenticated server functions and protected user_roles checks before loading privileged clients; the initial admin can only be created with an owner-configured secret, never promoted from an existing unverified account.
 - Shared demo catalogue rows resolve built-in scenario templates; demo edits always save as private copies so shared examples cannot be overwritten.
 - The offline coach (src/lib/canvas/coach.ts) is pure, deterministic functions so its rules stay unit-testable.
 - Shared pure facilitation helpers define the live prompt and local reply shape; offline stage transitions use the existing chat history to request consent before advancing, avoiding a second progress state.

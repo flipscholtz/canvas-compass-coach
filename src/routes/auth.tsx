@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { accountEmail } from "@/lib/canvas/accounts";
+import { prepareAdminAccount } from "@/lib/canvas/admin.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [
@@ -20,6 +22,7 @@ export const Route = createFileRoute("/auth")({
 
 export function SignIn() {
   const navigate = useNavigate();
+  const prepareAdmin = useServerFn(prepareAdminAccount);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
@@ -33,6 +36,10 @@ export function SignIn() {
   async function submit(e: FormEvent) {
     e.preventDefault(); setBusy(true); setError("");
     try {
+      if (username.trim().toLowerCase() === "admin") {
+        const setup = await prepareAdmin();
+        if (!setup.ready) throw new Error("The administrator account needs organiser setup before sign-in.");
+      }
       const { error: failure } = await supabase.auth.signInWithPassword({ email: accountEmail(username), password });
       if (failure) throw new Error("Couldn't sign in. Check your username and password, then try again.");
       setPassword("");

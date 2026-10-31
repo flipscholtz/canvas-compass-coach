@@ -1,4 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { getAdminAccess } from "@/lib/canvas/admin.functions";
 import { useEffect, useState } from "react";
 import { Info, Eye, Layers, Settings, Compass, X, ChevronDown, Route as JourneyIcon, FlaskConical, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,6 +47,7 @@ function Index() {
 
 function App() {
   const s = useCanvasStore();
+  const { data: adminAccess } = useQuery({ queryKey: ["admin-access"], queryFn: () => getAdminAccess(), staleTime: 0 });
   const mobile = useIsMobile();
   const [vv, setVv] = useState({ height: 844, bottom: 0, keyboard: false });
   useEffect(() => {
@@ -112,6 +115,7 @@ function App() {
           <Button data-tour="tour" variant="ghost" size="sm" className="max-md:size-11 max-md:px-0" aria-label="Start tour" onClick={() => { setRightView("canvas"); setCoachOpen(true); setTour(true); }}><TourIcon className="size-4" /> <span className="max-md:sr-only">Tour</span></Button>
           <div data-tour="scenarios" className="flex shrink-0 items-center gap-2"><ScenarioMenu /></div>
           <AccountMenu />
+          {adminAccess?.allowed && <Button asChild variant="ghost" className="min-h-11 md:min-h-8"><Link to="/admin">Admin</Link></Button>}
           <Button size="icon" variant="outline" className="size-11 md:size-8" aria-label="Settings" onClick={() => { setKey(s.apiKey); setModel(s.model); setSettings(true); }}>
             <Settings />
           </Button>
