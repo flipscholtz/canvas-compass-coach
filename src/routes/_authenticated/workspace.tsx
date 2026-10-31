@@ -23,6 +23,7 @@ import { JourneyPanel } from "@/components/canvas/JourneyPanel";
 import { ScenarioMenu } from "@/components/canvas/ScenarioMenu";
 import { WelcomeWizard, welcomeSeen, TourIcon } from "@/components/canvas/WelcomeWizard";
 import { SuggestAllButton } from "@/components/canvas/SuggestAllButton";
+import { AccountMenu } from "@/components/canvas/AccountMenu";
 
 export const Route = createFileRoute("/_authenticated/workspace")({
   head: () => ({
@@ -39,11 +40,6 @@ export const Route = createFileRoute("/_authenticated/workspace")({
 });
 
 function Index() {
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    Promise.resolve(useCanvasStore.persist.rehydrate()).then(() => setReady(true));
-  }, []);
-  if (!ready) return <div className="min-h-screen bg-background" />;
   return <App />;
 }
 
@@ -104,7 +100,7 @@ function App() {
               CanvasStack <span className="hidden text-muted-foreground sm:inline">· Socratic BMC Co-Pilot</span>
             </h1>
             <p className="mt-1 truncate text-xs text-muted-foreground">
-              {s.scenarioName} · <span className="font-mono">Guest mode</span>
+              {s.scenarioName} · <span className="font-mono">Account workspace</span>
             </p>
           </div>
         </div>
@@ -115,6 +111,7 @@ function App() {
           </Popover>
           <Button data-tour="tour" variant="ghost" size="sm" className="max-md:size-11 max-md:px-0" aria-label="Start tour" onClick={() => { setRightView("canvas"); setCoachOpen(true); setTour(true); }}><TourIcon className="size-4" /> <span className="max-md:sr-only">Tour</span></Button>
           <div data-tour="scenarios" className="flex shrink-0 items-center gap-2"><ScenarioMenu /></div>
+          <AccountMenu />
           <Button size="icon" variant="outline" className="size-11 md:size-8" aria-label="Settings" onClick={() => { setKey(s.apiKey); setModel(s.model); setSettings(true); }}>
             <Settings />
           </Button>
