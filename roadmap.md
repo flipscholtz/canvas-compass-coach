@@ -7,3 +7,5 @@
 - [x] Test and verify help guidance, Yes / Not now, and persistence in the app.
 - [x] Apply facilitator-style coaching to live, offline and help replies; test and verify the conversation.
 - [x] Make the canvas-first desktop/mobile workspace, compact menus and linked coach feedback; verify existing flows.
+- [ ] Enable Cloud, manual username login and account-private scenarios with shared demos.
+- [ ] Preserve browser-only work separately and verify account isolation, save/load and sign-out.
