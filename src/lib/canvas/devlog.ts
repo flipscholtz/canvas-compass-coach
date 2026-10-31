@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-31",
+    title: "In-app account administration",
+    changes: ["Added an Admin tab for authorised organisers to create username/password accounts without collecting personal emails.", "Account removal requires confirmation and deletes private saved scenarios; administrator accounts are protected.", "Account management is checked on the server; existing private scenarios, shared demos and sign-in protections remain unchanged.", "The first admin account requires a private password supplied through organiser setup."],
+  },
+  {
+    date: "2026-10-31",
     title: "Account login and Cloud scenarios",
     changes: ["Added organiser-provided username/password accounts with no public signup.", "Saved scenarios are private to each account and available across devices; VeriTrace and LearnLoop remain shared protected demos.", "Browser drafts are isolated per account, sign-out clears the screen, and previous browser work can be imported explicitly."],
   },
