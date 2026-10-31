@@ -9,4 +9,4 @@
 - [x] Make the canvas-first desktop/mobile workspace, compact menus and linked coach feedback; verify existing flows.
 - [x] Enable Cloud, manual username login and account-private scenarios with shared demos.
 - [x] Preserve browser-only work separately and verify account isolation, save/load and sign-out.
-- [ ] Add secure in-app username-only account administration; resolve replacement of existing sign-in and scenario ownership.
+- [x] Add secure in-app username-only account administration; preserve trusted sign-in and scenario ownership per the approved plan.
