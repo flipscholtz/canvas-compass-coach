@@ -10,53 +10,84 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as CallsheetRouteImport } from './routes/callsheet'
-import { Route as ReportRouteImport } from './routes/report'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedCallsheetRouteImport } from './routes/_authenticated/callsheet'
+import { Route as AuthenticatedReportRouteImport } from './routes/_authenticated/report'
+import { Route as AuthenticatedWorkspaceRouteImport } from './routes/_authenticated/workspace'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CallsheetRoute = CallsheetRouteImport.update({
-  id: '/callsheet',
-  path: '/callsheet',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReportRoute = ReportRouteImport.update({
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedCallsheetRoute = AuthenticatedCallsheetRouteImport.update({
+  id: '/callsheet',
+  path: '/callsheet',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedReportRoute = AuthenticatedReportRouteImport.update({
   id: '/report',
   path: '/report',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedWorkspaceRoute = AuthenticatedWorkspaceRouteImport.update({
+  id: '/workspace',
+  path: '/workspace',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/callsheet': typeof CallsheetRoute
-  '/report': typeof ReportRoute
+  '/auth': typeof AuthRoute
+  '/callsheet': typeof AuthenticatedCallsheetRoute
+  '/report': typeof AuthenticatedReportRoute
+  '/workspace': typeof AuthenticatedWorkspaceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/callsheet': typeof CallsheetRoute
-  '/report': typeof ReportRoute
+  '/auth': typeof AuthRoute
+  '/callsheet': typeof AuthenticatedCallsheetRoute
+  '/report': typeof AuthenticatedReportRoute
+  '/workspace': typeof AuthenticatedWorkspaceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/callsheet': typeof CallsheetRoute
-  '/report': typeof ReportRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/callsheet': typeof AuthenticatedCallsheetRoute
+  '/_authenticated/report': typeof AuthenticatedReportRoute
+  '/_authenticated/workspace': typeof AuthenticatedWorkspaceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/callsheet' | '/report'
+  fullPaths: '/' | '/auth' | '/callsheet' | '/report' | '/workspace'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/callsheet' | '/report'
-  id: '__root__' | '/' | '/callsheet' | '/report'
+  to: '/' | '/auth' | '/callsheet' | '/report' | '/workspace'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/callsheet'
+    | '/_authenticated/report'
+    | '/_authenticated/workspace'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CallsheetRoute: typeof CallsheetRoute
-  ReportRoute: typeof ReportRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -68,27 +99,63 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/callsheet': {
-      id: '/callsheet'
-      path: '/callsheet'
-      fullPath: '/callsheet'
-      preLoaderRoute: typeof CallsheetRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/report': {
-      id: '/report'
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/callsheet': {
+      id: '/_authenticated/callsheet'
+      path: '/callsheet'
+      fullPath: '/callsheet'
+      preLoaderRoute: typeof AuthenticatedCallsheetRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/report': {
+      id: '/_authenticated/report'
       path: '/report'
       fullPath: '/report'
-      preLoaderRoute: typeof ReportRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedReportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/workspace': {
+      id: '/_authenticated/workspace'
+      path: '/workspace'
+      fullPath: '/workspace'
+      preLoaderRoute: typeof AuthenticatedWorkspaceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedCallsheetRoute: typeof AuthenticatedCallsheetRoute
+  AuthenticatedReportRoute: typeof AuthenticatedReportRoute
+  AuthenticatedWorkspaceRoute: typeof AuthenticatedWorkspaceRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedCallsheetRoute: AuthenticatedCallsheetRoute,
+  AuthenticatedReportRoute: AuthenticatedReportRoute,
+  AuthenticatedWorkspaceRoute: AuthenticatedWorkspaceRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CallsheetRoute: CallsheetRoute,
-  ReportRoute: ReportRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

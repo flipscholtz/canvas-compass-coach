@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { ArrowLeft, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCanvasStore } from "@/lib/canvas/store";
 import { analyzeJourney } from "@/lib/canvas/journey";
 import { BLOCKS, type BlockId, type Canvas } from "@/lib/canvas/types";
 
-export const Route = createFileRoute("/report")({
+export const Route = createFileRoute("/_authenticated/report")({
   head: () => ({
     meta: [
       { title: "BMC Report — CanvasStack" },
@@ -28,9 +28,6 @@ const AREA: Record<BlockId, string> = {
 const DOT = { hypothesis: "bg-hypo", validated: "bg-valid", invalidated: "bg-invalid" } as const;
 
 function ReportPage() {
-  const [ready, setReady] = useState(false);
-  useEffect(() => { Promise.resolve(useCanvasStore.persist.rehydrate()).then(() => setReady(true)); }, []);
-  if (!ready) return <div className="min-h-screen bg-background" />;
   return <Report />;
 }
 
@@ -60,7 +57,7 @@ function Report() {
     <div className="report min-h-screen bg-muted/40 py-8 print:bg-transparent print:py-0">
       <style>{`@page { size: A4 landscape; margin: 12mm; } @media print { .report * { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .page { break-after: page; box-shadow: none !important; } .avoid { break-inside: avoid; } html, body { background: var(--paper) !important; } }`}</style>
       <div className="mx-auto mb-4 flex max-w-5xl justify-between px-4 print:hidden">
-        <Button variant="outline" size="sm" asChild><Link to="/"><ArrowLeft /> Back to app</Link></Button>
+        <Button variant="outline" size="sm" asChild><Link to="/workspace"><ArrowLeft /> Back to app</Link></Button>
         <Button size="sm" onClick={() => window.print()} className="bg-signal text-signal-foreground hover:bg-signal/90"><Printer /> Print / Save as PDF</Button>
       </div>
 

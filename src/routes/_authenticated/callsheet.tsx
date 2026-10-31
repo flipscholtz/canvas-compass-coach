@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ArrowLeft, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useCanvasStore } from "@/lib/canvas/store";
 import { blockTitle, buildCallSheet, listAssumptions } from "@/lib/canvas/callsheet";
 
-export const Route = createFileRoute("/callsheet")({
+export const Route = createFileRoute("/_authenticated/callsheet")({
   head: () => ({
     meta: [
       { title: "Experiment Designer | CanvasStack" },
@@ -21,9 +21,6 @@ export const Route = createFileRoute("/callsheet")({
 });
 
 function Page() {
-  const [ready, setReady] = useState(false);
-  useEffect(() => { Promise.resolve(useCanvasStore.persist.rehydrate()).then(() => setReady(true)); }, []);
-  if (!ready) return <div className="min-h-screen bg-background" />;
   return <Designer />;
 }
 
@@ -43,7 +40,7 @@ function Designer() {
       <style>{`@media print { @page { size: A4 portrait; margin: 14mm; } * { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .avoid { break-inside: avoid; } }`}</style>
       <div className="mx-auto max-w-3xl space-y-6 px-4 print:max-w-none print:px-0">
         <div className="flex items-center justify-between print:hidden">
-          <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> Back to canvas</Link>
+          <Link to="/workspace" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="size-4" /> Back to canvas</Link>
           <Button onClick={() => window.print()} disabled={!selected.length}><Printer className="size-4" /> Print / Save as PDF</Button>
         </div>
 

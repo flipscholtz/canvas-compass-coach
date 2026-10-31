@@ -58,6 +58,7 @@ interface State {
   loadScenario: (id: string) => void;
   deleteScenario: (id: string) => void;
   restoreDemos: () => void;
+  clearWorkspace: () => void;
 }
 
 /** A named, saved copy of a whole scenario (canvas stack, chat, cards, log). */
@@ -108,6 +109,7 @@ export const useCanvasStore = create<State>()(
   persist(
     (set) => ({
       ...freshSession(),
+      clearWorkspace: () => set({ ...freshSession(), scenarios: [], scenarioId: null, author: "", apiKey: "", model: "gpt-4o-mini", drawerOpen: true, highlightCardId: null }),
       apiKey: "",
       model: "gpt-4o-mini",
       author: "",
@@ -274,9 +276,10 @@ export const useCanvasStore = create<State>()(
         }),
     }),
     {
-      name: "canvasstack-session",
+      name: "canvasstack-signed-out",
       skipHydration: true,
-      partialize: ({ drawerOpen: _d, highlightCardId: _h, ...rest }) => rest,
+      partialize: ({ drawerOpen: _d, highlightCardId: _h, apiKey: _key, ...rest }) => rest,
+      merge: (persisted, current) => ({ ...current, ...(persisted as Partial<State>), apiKey: "" }),
     },
   ),
 );

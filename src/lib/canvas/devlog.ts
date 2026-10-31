@@ -7,6 +7,11 @@ export interface DevLogEntry {
 
 export const DEV_LOG: DevLogEntry[] = [
   {
+    date: "2026-10-31",
+    title: "Account login and Cloud scenarios",
+    changes: ["Added organiser-provided username/password accounts with no public signup.", "Saved scenarios are private to each account and available across devices; VeriTrace and LearnLoop remain shared protected demos.", "Browser drafts are isolated per account, sign-out clears the screen, and previous browser work can be imported explicitly."],
+  },
+  {
     date: "2026-10-30",
     title: "Clearer, shorter Coherence check",
     changes: ["Shows the top 3 gaps first, one each for earning revenue, delivering the value and acquiring customers; the rest are grouped by theme behind \"See all issues\".", "New cross-block checks: promises no activity delivers, channels not linked to the customer, resources and activities missing from costs, and revenue that doesn't say who pays.", "Each canvas entry is quoted only once, with its status (untested, evidence recorded, validated without evidence, invalidated) and a one-line evidence summary.", "Each issue explains why it matters and the next step, and \"Work on this\" makes the coach focus on it."],
