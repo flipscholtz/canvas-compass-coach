@@ -8,6 +8,11 @@ export interface DevLogEntry {
 export const DEV_LOG: DevLogEntry[] = [
   {
     date: "2026-10-31",
+    title: "Shared AI without personal-key settings",
+    changes: ["Confirmed shared OpenAI availability is enabled for all accounts.", "Removed the workspace settings button and personal API-key/model dialog to reduce header clutter; shared coaching and offline recovery remain unchanged."],
+  },
+  {
+    date: "2026-10-31",
     title: "Clearer Cloud scenario picker",
     changes: ["Removed the previous browser-work import section from the scenario picker.", "Your private saved scenarios and protected built-in demos now appear in separate labelled sections.", "Demo rows show Built-in demo rather than a misleading saved date; existing Cloud scenarios and browser drafts are unchanged."],
   },
