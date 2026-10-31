@@ -3,12 +3,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { completeAccountTour, readTourCompletion, shouldShowTour } from "@/lib/canvas/tour";
 import { getAdminAccess } from "@/lib/canvas/admin.functions";
 import { useEffect, useRef, useState } from "react";
-import { Info, Eye, Layers, Settings, Compass, X, ChevronDown, Route as JourneyIcon, FlaskConical, ScrollText } from "lucide-react";
+import { Info, Eye, Layers, Compass, X, ChevronDown, Route as JourneyIcon, FlaskConical, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCanvasFeedback } from "@/components/canvas/useCanvasFeedback";
@@ -70,7 +67,6 @@ function App() {
   const [rightView, setRightView] = useState<"canvas" | "journey" | "log" | "tests">("canvas");
   const [coachOpen, setCoachOpen] = useState(true);
   const [mobileCoach, setMobileCoach] = useState(false);
-  const [settings, setSettings] = useState(false);
   const [tour, setTour] = useState(false);
   useEffect(() => {
     if (tourLoaded && !checkedTour.current) {
@@ -79,8 +75,6 @@ function App() {
     }
   }, [tourLoaded, tourCompleted]);
   useEffect(() => { if (tour) { setRightView("canvas"); setCoachOpen(true); } }, [tour]);
-  const [key, setKey] = useState(s.apiKey);
-  const [model, setModel] = useState(s.model);
 
   const viewIdx = s.viewingId ? s.versions.findIndex((v) => v.id === s.viewingId) : s.versions.length - 1;
   const viewing = s.versions[Math.max(0, viewIdx)];
@@ -126,9 +120,6 @@ function App() {
           <div data-tour="scenarios" className="flex shrink-0 items-center gap-2"><ScenarioMenu /></div>
           <AccountMenu />
           {adminAccess?.allowed && <Button asChild variant="ghost" className="min-h-11 md:min-h-8"><Link to="/admin">Admin</Link></Button>}
-          <Button size="icon" variant="outline" className="size-11 md:size-8" aria-label="Settings" onClick={() => { setKey(s.apiKey); setModel(s.model); setSettings(true); }}>
-            <Settings />
-          </Button>
         </div>
       </header>
 
@@ -176,36 +167,6 @@ function App() {
         </DialogContent>
       </Dialog>
 
-
-      <Dialog open={settings} onOpenChange={setSettings}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="font-display">Coach runtime</DialogTitle>
-            <DialogDescription>
-              Leave the key empty to use the offline, rule-based demo coach. Your key is stored only in this browser.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="key">OpenAI API key (optional)</Label>
-              <Input id="key" type="password" value={key} onChange={(e) => setKey(e.target.value)} placeholder="sk-…" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Model</Label>
-              <Select value={model} onValueChange={setModel}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="gpt-4o-mini">gpt-4o-mini</SelectItem>
-                  <SelectItem value="gpt-4o">gpt-4o</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={() => { s.setSettings(key.trim(), model); setSettings(false); }}>Save</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
