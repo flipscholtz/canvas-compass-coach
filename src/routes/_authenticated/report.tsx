@@ -6,7 +6,7 @@ import { useCanvasStore } from "@/lib/canvas/store";
 import { analyzeJourney } from "@/lib/canvas/journey";
 import { BLOCKS, type BlockId, type Canvas } from "@/lib/canvas/types";
 
-export const Route = createFileRoute("/report")({
+export const Route = createFileRoute("/_authenticated/report")({
   head: () => ({
     meta: [
       { title: "BMC Report — CanvasStack" },

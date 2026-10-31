@@ -24,7 +24,7 @@ import { ScenarioMenu } from "@/components/canvas/ScenarioMenu";
 import { WelcomeWizard, welcomeSeen, TourIcon } from "@/components/canvas/WelcomeWizard";
 import { SuggestAllButton } from "@/components/canvas/SuggestAllButton";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/workspace")({
   head: () => ({
     meta: [
       { title: "CanvasStack — The Socratic BMC Co-Pilot" },

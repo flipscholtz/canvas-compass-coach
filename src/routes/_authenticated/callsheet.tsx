@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useCanvasStore } from "@/lib/canvas/store";
 import { blockTitle, buildCallSheet, listAssumptions } from "@/lib/canvas/callsheet";
 
-export const Route = createFileRoute("/callsheet")({
+export const Route = createFileRoute("/_authenticated/callsheet")({
   head: () => ({
     meta: [
       { title: "Experiment Designer | CanvasStack" },
