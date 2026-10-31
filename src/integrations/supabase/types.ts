@@ -14,7 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      account_scenarios: {
+        Row: {
+          data: Json
+          id: string
+          name: string
+          owner_id: string
+          saved_at: string
+        }
+        Insert: {
+          data: Json
+          id?: string
+          name: string
+          owner_id?: string
+          saved_at?: string
+        }
+        Update: {
+          data?: Json
+          id?: string
+          name?: string
+          owner_id?: string
+          saved_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_scenarios_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      demo_scenarios: {
+        Row: {
+          id: string
+          name: string
+          template_key: string
+        }
+        Insert: {
+          id: string
+          name: string
+          template_key: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          template_key?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
