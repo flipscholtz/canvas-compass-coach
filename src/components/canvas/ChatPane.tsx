@@ -43,7 +43,7 @@ export function ChatPane() {
   const identifyRiskiest = useRiskiest();
   const head = s.versions.at(-1)?.canvas;
   const serverAi = useServerAi();
-  const live = !!s.apiKey || serverAi;
+  const live = serverAi;
   const [used, setUsed] = useState<Set<QuickKey>>(new Set());
   const longPress = useRef<{ t?: ReturnType<typeof setTimeout>; fired: boolean }>({ fired: false });
 
@@ -112,7 +112,7 @@ export function ChatPane() {
       if (help) {
         publish({ role: "coach", text: help.reply, helpOffer: { ...help.offer, versionId: state.versions.at(-1)?.id ?? "" } });
       } else if (live) {
-        const r = await withCoachDeadline((signal) => llmTurn({ apiKey: s.apiKey, model: s.model, canvas: head, history, stage: s.stage, signal }));
+        const r = await withCoachDeadline((signal) => llmTurn({ canvas: head, history, stage: s.stage, signal }));
         if (!currentSession()) return;
         s.addItems(r.additions.map((a, i) => (i === 0 && r.assumptions.length ? { ...a, assumptions: r.assumptions } : a)));
         s.setProgress(s.step, r.stage);

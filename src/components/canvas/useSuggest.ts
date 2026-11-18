@@ -13,12 +13,13 @@ export function useSuggest() {
 
   async function suggest(target: BlockId | "all") {
     const s = useCanvasStore.getState();
-    const canvas = s.versions[s.versions.length - 1]!.canvas;
+    const canvas = s.versions.at(-1)?.canvas;
+    if (!canvas) return;
     const blocks = target === "all" ? BLOCK_ORDER : [target];
     setBusy(target);
     try {
-      const adds = s.apiKey || serverAi
-        ? await llmSuggest({ apiKey: s.apiKey, model: s.model, canvas, blocks })
+      const adds = serverAi
+        ? await llmSuggest({ canvas, blocks })
         : blocks.flatMap((b) => suggestAssumptions(canvas, b).map((text) => ({ block: b, text })));
       if (!adds.length) {
         toast("No new assumptions to suggest here — test the ones you have.");

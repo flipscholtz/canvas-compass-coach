@@ -10,6 +10,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture
+- Live coach and assumption generation use the Lovable AI SDK inside authenticated server functions; provider credentials and model selection never come from browser drafts.
 - Workspace feedback is transient presentation state derived from canvas differences and the current coach question; layout never changes persisted coaching or version semantics.
 - Recognized help requests use the same pure, contextual helper in live and offline chat because the current completion setup has no browsing tools; saving proposals is an atomic, version-scoped, idempotent store action requiring explicit consent.
 - Coach turns use a bounded, validated response boundary and explicit retry metadata referencing the original user message, so failures cannot create blank replies, duplicate user turns or late canvas updates.

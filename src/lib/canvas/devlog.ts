@@ -7,6 +7,11 @@ export interface DevLogEntry {
 
 export const DEV_LOG: DevLogEntry[] = [
   {
+    date: "2026-11-18",
+    title: "Shared coaching through Lovable AI",
+    changes: ["Coach replies and generated assumptions now use Lovable AI with GPT-6.1 Sol instead of a personal OpenAI account.", "Live AI requests require a signed-in account; existing context, untested hypotheses and 30-second chat recovery remain in place."],
+  },
+  {
     date: "2026-10-31",
     title: "Shared AI without personal-key settings",
     changes: ["Confirmed shared OpenAI availability is enabled for all accounts.", "Removed the workspace settings button and personal API-key/model dialog to reduce header clutter; shared coaching and offline recovery remain unchanged."],

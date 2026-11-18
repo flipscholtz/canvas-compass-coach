@@ -3,7 +3,7 @@ import { getServerAiStatus } from "@/lib/canvas/llm.functions";
 
 let cached: Promise<boolean> | null = null;
 
-/** True when the backend demo OpenAI key is switched on. */
+/** True when the account can use shared Lovable AI. */
 export function useServerAi() {
   const [on, setOn] = useState(false);
   useEffect(() => {

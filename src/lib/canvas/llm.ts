@@ -6,31 +6,11 @@ import { FACILITATOR_PROMPT, ensureFacilitatorQuestion } from "./facilitation";
 
 type Msg = { role: "system" | "user" | "assistant"; content: string };
 
-/** Uses the founder's own key if set; otherwise the server-held demo key. */
-async function chat(apiKey: string, model: string, messages: Msg[], signal?: AbortSignal): Promise<string> {
-  if (!apiKey) {
-    const m = model === "gpt-4o" ? "gpt-4o" : "gpt-4o-mini";
-    const result = await serverChat({ data: { model: m, messages }, ...(signal ? { signal } : {}) });
-    if (result.error) throw new Error(result.error);
-    return result.content;
-  }
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    ...(signal ? { signal } : {}),
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-    body: JSON.stringify({ model, response_format: { type: "json_object" }, messages }),
-  });
-  const raw = await res.text();
-  try {
-    if (!res.ok) throw new Error(`OpenAI request failed (${res.status})`);
-    const data = JSON.parse(raw);
-    const content = data.choices?.[0]?.message?.content;
-    if (typeof content !== "string" || !content.trim()) throw new Error("AI returned no text");
-    return content;
-  } catch (error) {
-    console.error("[CanvasStack coach] AI transport failure", { error, rawResponse: raw });
-    throw error;
-  }
+/** All live requests use authenticated, server-side Lovable AI. */
+async function chat(messages: Msg[], signal?: AbortSignal): Promise<string> {
+  const result = await serverChat({ data: { messages }, ...(signal ? { signal } : {}) });
+  if (result.error) throw new Error(result.error);
+  return result.content;
 }
 import { type Assumption, BLOCK_ORDER, type BlockId, type Canvas, type ChatMessage, type Stage } from "./types";
 
@@ -66,8 +46,6 @@ export interface LlmResult {
 }
 
 export async function llmTurn(opts: {
-  apiKey: string;
-  model: string;
   canvas: Canvas;
   history: ChatMessage[];
   stage?: Stage;
@@ -76,7 +54,7 @@ export async function llmTurn(opts: {
   const canvasSummary = Object.fromEntries(
     BLOCK_ORDER.map((b) => [b, opts.canvas[b].map((i) => `${i.text} [${i.status}]`)]),
   );
-  const content = await chat(opts.apiKey, opts.model, [
+  const content = await chat([
         { role: "system", content: SYSTEM },
         { role: "system", content: `Current canvas JSON: ${JSON.stringify(canvasSummary)}` },
         { role: "system", content: `Current stage: ${opts.stage ?? 1}. Use the conversation to identify the active block and any pending invitation to move on.` },
@@ -101,9 +79,9 @@ export async function llmTurn(opts: {
   };
 }
 
-export async function llmSuggest(opts: { apiKey: string; model: string; canvas: Canvas; blocks: BlockId[] }) {
+export async function llmSuggest(opts: { canvas: Canvas; blocks: BlockId[] }) {
   const canvasSummary = Object.fromEntries(BLOCK_ORDER.map((b) => [b, opts.canvas[b].map((i) => i.text)]));
-  const content = await chat(opts.apiKey, opts.model, [
+  const content = await chat([
         {
           role: "system",
           content: `You generate testable business-model assumptions (David J. Bland style): short, specific, falsifiable statements, not already on the canvas. Use the exact block ids listed below. Additions are untested hypotheses; never claim anything is validated without evidence.
