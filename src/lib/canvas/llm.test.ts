@@ -1,10 +1,10 @@
 import { beforeEach, expect, it, vi } from "vitest";
 import { llmSuggest, llmTurn } from "./llm";
 import { serverChat } from "./llm.functions";
-import { BLOCK_ORDER, type Canvas } from "./types";
+import { emptyCanvas } from "./types";
 
 vi.mock("./llm.functions", () => ({ serverChat: vi.fn() }));
-const canvas = Object.fromEntries(BLOCK_ORDER.map((block) => [block, []])) as Canvas;
+const canvas = emptyCanvas();
 beforeEach(() => vi.mocked(serverChat).mockReset());
 
 it("routes coach context through the shared server without browser credentials or model overrides", async () => {
