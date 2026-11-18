@@ -13,4 +13,4 @@
 - [x] Store account tour completion, verify completion/replay, and reset assessment for next login.
 - [x] Remove previous browser imports and separate private scenarios from built-in demos; verify the picker.
 - [x] Confirm shared OpenAI availability for all accounts and remove personal-key settings from the workspace.
-- [ ] Switch coach and assumption generation to authenticated Lovable AI using GPT-6.1 Sol, verify live requests, and remove the unused OpenAI secret.
+- [x] Switch coach and assumption generation to authenticated Lovable AI using GPT-6.1 Sol, verify live requests, and remove the unused OpenAI secret.

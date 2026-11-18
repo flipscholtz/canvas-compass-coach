@@ -7,7 +7,7 @@ export const getServerAiStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async () => ({ enabled: true }));
 
-/** Proxies one JSON-mode chat completion through the server-held OpenAI key. */
+/** Generates one JSON-mode response through Lovable AI for an authenticated account. */
 export const serverChat = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
