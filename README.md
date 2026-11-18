@@ -6,6 +6,14 @@ This project was built with [Lovable](https://lovable.dev).
 
 **Live app**: https://canvas-compass-coach.lovable.app
 
+## Hosting and AI
+
+Currently hosted on Lovable, including Lovable's GPT integration for the AI component: https://canvas-compass-coach.lovable.app/
+
+## Admin account
+
+The password for the `admin` user is set using the environment variable / secret `CANVASSTACK_ADMIN_PASSWORD`. From that account, additional users can be created.
+
 ## Build with Lovable
 
 Continue developing this project in the [Lovable editor](https://lovable.dev/projects/55008479-0be7-4747-b973-d2ff91e8bb21).
